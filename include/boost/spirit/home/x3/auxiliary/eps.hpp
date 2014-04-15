@@ -17,47 +17,6 @@
 
 namespace boost { namespace spirit { namespace x3
 {
-    struct rule_context_tag;
-
-    struct semantic_predicate : parser<semantic_predicate>
-    {
-        typedef unused_type attribute_type;
-        static bool const has_attribute = false;
-
-        semantic_predicate(bool predicate)
-          : predicate(predicate) {}
-
-        template <typename Iterator, typename Context, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute& /*attr*/) const
-        {
-            x3::skip_over(first, last, context);
-            return predicate;
-        }
-
-        bool predicate;
-    };
-
-    template <typename F>
-    struct lazy_semantic_predicate : parser<lazy_semantic_predicate<F>>
-    {
-        typedef unused_type attribute_type;
-        static bool const has_attribute = false;
-
-        lazy_semantic_predicate(F f)
-          : f(f) {}
-
-        template <typename Iterator, typename Context, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            x3::skip_over(first, last, context);
-            return f(x3::get<rule_context_tag>(context));
-        }
-
-        F f;
-    };
-
     struct eps_parser : parser<eps_parser>
     {
         typedef unused_type attribute_type;
@@ -65,27 +24,14 @@ namespace boost { namespace spirit { namespace x3
 
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute& /*attr*/) const
+          , Context const& context, Attribute& /*attr*/, bool pred = true) const
         {
             x3::skip_over(first, last, context);
-            return true;
-        }
-
-        semantic_predicate
-        operator()(bool predicate) const
-        {
-            return semantic_predicate(predicate);
-        }
-
-        template <typename F>
-        lazy_semantic_predicate<F>
-        operator()(F f) const
-        {
-            return lazy_semantic_predicate<F>(f);
+            return pred;
         }
     };
 
-    eps_parser const eps = eps_parser();
+    eps_parser const eps{};
 }}}
 
 #endif
