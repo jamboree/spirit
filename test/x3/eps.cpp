@@ -20,7 +20,7 @@ main()
     {
         BOOST_TEST((test("", eps)));
         BOOST_TEST((test("xxx", eps, false)));
-        //~ BOOST_TEST((!test("", !eps))); // not predicate $$$ Implement me! $$$
+        BOOST_TEST((!test("", !eps)));
     }
 
     {   // test non-lazy semantic predicate

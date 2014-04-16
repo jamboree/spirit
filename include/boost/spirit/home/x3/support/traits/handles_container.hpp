@@ -24,8 +24,29 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     // readily available (e.g. expensive to compute at compile time).
     ///////////////////////////////////////////////////////////////////////////
     template <typename Component, typename Context, typename Enable = void>
-    struct handles_container : mpl::bool_<Component::handles_container> {};
+    struct handles_container;
 
+    namespace detail
+    {
+        template <typename Component, typename Context, typename Enable = void>
+        struct default_handles_container
+          : mpl::false_ {};
+
+        template <typename Component, typename Context>
+        struct default_handles_container<Component, Context,
+            typename disable_if_substitution_failure<
+                mpl::bool_<Component::handles_container>>::type>
+          : mpl::bool_<Component::handles_container> {};
+    
+        template <typename Component, typename Context>
+        struct default_handles_container<Component, Context,
+            typename enable_if_c<Component::is_pass_through_unary>::type>
+          : handles_container<typename Component::subject_type, Context> {};
+    }
+    
+    template <typename Component, typename Context, typename Enable>
+    struct handles_container
+      : detail::default_handles_container<Component, Context> {};
 }}}}
 
 #endif

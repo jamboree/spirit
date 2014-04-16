@@ -7,15 +7,14 @@
 #ifndef BOOST_SPIRIT_X3_DIRECTIVE_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_DIRECTIVE_HPP_INCLUDED
 
-
 #if defined(_MSC_VER)
 #pragma once
 #endif
 
-
 #include <tuple>
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/detail/eval.hpp>
+#include <boost/spirit/home/x3/core/detail/transform_params.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
@@ -46,6 +45,8 @@ namespace boost { namespace spirit { namespace x3
     template <typename Directive, typename... Ts>
     struct directive_caller
     {
+        typedef detail::transform_params<Directive, std::tuple<Ts...>> transform;
+        
         template <typename Subject>
         struct traits : Directive::template traits<Subject> {};
         
@@ -63,22 +64,47 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
+            typename transform::invoke_tag tag;
             make_index_sequence<sizeof...(Ts)> indices;
-            return invoke_parse(indices, subject, first, last, context, attr);
+            return invoke_parse(tag, indices, subject, first, last, context, attr);
         }
         
+        // no transform_params
         template <std::size_t... Ns, typename Subject
             , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(index_sequence<Ns...>, Subject const& subject
-          , Iterator& first, Iterator const& last
+        bool invoke_parse(mpl::int_<0>, index_sequence<Ns...>
+          , Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
             return directive.parse(subject, first, last, context, attr,
                 detail::eval(std::get<Ns>(params), context)...);
         }
 
+        // post-transform
+        template <std::size_t... Ns, typename Subject
+            , typename Iterator, typename Context, typename Attribute>
+        bool invoke_parse(mpl::int_<1>, index_sequence<Ns...>
+          , Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            return directive.parse(subject, first, last, context, attr,
+                Subject::transform_params::apply(
+                    detail::eval(std::get<Ns>(params), context)...));
+        }
+        
+        // transformed
+        template <std::size_t... Ns, typename Subject
+            , typename Iterator, typename Context, typename Attribute>
+        bool invoke_parse(mpl::int_<2>, index_sequence<Ns...>
+          , Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            return directive.parse(
+                subject, first, last, context, attr, params.data);
+        }
+        
         Directive directive;
-        std::tuple<Ts...> params;
+        typename transform::type params;
     };
 
     template <typename Derived>

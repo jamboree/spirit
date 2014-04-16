@@ -7,6 +7,9 @@
 #ifndef BOOST_SPIRIT_X3_DETAIL_EVAL_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_DETAIL_EVAL_HPP_INCLUDED
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/support/utility/is_callable.hpp>
