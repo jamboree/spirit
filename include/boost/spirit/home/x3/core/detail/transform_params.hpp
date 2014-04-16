@@ -26,7 +26,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     struct transform_params
     {
         typedef Tuple type;
-        typedef mpl::int_<has_transform_params<Subject>::value> invoke_tag;
+        typedef
+            mpl::int_<has_transform_params<Subject>::value && std::tuple_size<Tuple>::value>
+        invoke_tag;
     };
     
     template <typename Subject, typename... Ts>
