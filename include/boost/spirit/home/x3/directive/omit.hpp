@@ -12,7 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/support/unused.hpp>
-#include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/directive.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -20,36 +20,25 @@ namespace boost { namespace spirit { namespace x3
     // omit_directive forces the attribute of subject parser
     // to be unused_type
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Subject>
-    struct omit_directive : unary_parser<Subject, omit_directive<Subject>>
-    {
-        typedef unary_parser<Subject, omit_directive<Subject> > base_type;
-        typedef unused_type attribute_type;
-        static bool const has_attribute = false;
-
-        typedef Subject subject_type;
-        omit_directive(Subject const& subject)
-          : base_type(subject) {}
-
-        template <typename Iterator, typename Context>
-        bool parse(Iterator& first, Iterator const& last
-          , Context const& context, unused_type) const
-        {
-            return this->subject.parse(first, last, context, unused);
-        }
-    };
-
-    struct omit_gen
+    
+    struct omit_directive : directive<omit_directive>
     {
         template <typename Subject>
-        omit_directive<typename extension::as_parser<Subject>::value_type>
-        operator[](Subject const& subject) const
+        struct traits
         {
-            return {as_parser(subject)};
+            typedef unused_type attribute_type;
+            static bool const has_attribute = false;
+        };
+
+        template <typename Subject, typename Iterator, typename Context>
+        bool parse(Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, unused_type) const
+        {
+            return subject.parse(first, last, context, unused);
         }
     };
 
-    omit_gen const omit = omit_gen();
+    omit_directive const omit{};
 }}}
 
 #endif

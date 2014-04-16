@@ -16,26 +16,18 @@
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/support/unused.hpp>
 #include <boost/spirit/home/x3/core/skip_over.hpp>
-#include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/directive.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/utility/enable_if.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
     // same as lexeme[], but does not pre-skip
-    template <typename Subject>
-    struct no_skip_directive : unary_parser<Subject, no_skip_directive<Subject>>
+    struct no_skip_directive : directive<no_skip_directive>
     {
-        typedef unary_parser<Subject, no_skip_directive<Subject> > base_type;
-        static bool const is_pass_through_unary = true;
-        static bool const handles_container = Subject::handles_container;
-
-        no_skip_directive(Subject const& subject)
-          : base_type(subject) {}
-
-        template <typename Iterator, typename Context, typename Attribute>
+        template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename enable_if<has_skipper<Context>, bool>::type
-        parse(Iterator& first, Iterator const& last
+        parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
             auto const& skipper = get<skipper_tag>(context);
@@ -45,34 +37,21 @@ namespace boost { namespace spirit { namespace x3
             unused_skipper_type;
             unused_skipper_type unused_skipper(skipper);
 
-            return this->subject.parse(
+            return subject.parse(
                 first, last
               , make_context<skipper_tag>(unused_skipper, context)
               , attr);
         }
-        template <typename Iterator, typename Context, typename Attribute>
+        template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename disable_if<has_skipper<Context>, bool>::type
-        parse(Iterator& first, Iterator const& last
+        parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            return this->subject.parse(
-                first, last
-              , context
-              , attr);
+            return subject.parse(first, last, context, attr);
         }
     };
 
-    struct no_skip_gen
-    {
-        template <typename Subject>
-        no_skip_directive<typename extension::as_parser<Subject>::value_type>
-        operator[](Subject const& subject) const
-        {
-            return {as_parser(subject)};
-        }
-    };
-
-    no_skip_gen const no_skip = no_skip_gen();
+    no_skip_directive const no_skip{};
 }}}
 
 #endif

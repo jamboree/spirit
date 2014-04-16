@@ -16,6 +16,9 @@
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/detail/eval.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
+#include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
+#include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
+#include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 
 
 namespace boost { namespace spirit { namespace x3
@@ -98,6 +101,38 @@ namespace boost { namespace spirit { namespace x3
         }
     };
 }}}
+
+namespace boost { namespace spirit { namespace x3 { namespace traits
+{
+    // attribute_of
+    template <typename Directive, typename Subject, typename Context>
+    struct attribute_of<directive_parser<Directive, Subject>, Context,
+        typename disable_if_substitution_failure<
+            typename Directive::template traits<Subject>::attribute_type>::type>
+      : mpl::identity<typename Directive::template traits<Subject>::attribute_type>
+    {};
+    
+    template <typename Directive, typename Subject, typename Context>
+    struct attribute_of<directive_parser<Directive, Subject>, Context,
+        typename disable_if_substitution_failure<
+            typename Directive::template traits<Subject>::template attribute<Context>::type>::type>
+      : mpl::identity<typename Directive::template traits<Subject>::template attribute<Context>::type>
+    {};
+    
+    // has_attribute
+    template <typename Directive, typename Subject, typename Context>
+    struct has_attribute<directive_parser<Directive, Subject>, Context,
+        typename disable_if_substitution_failure<
+            mpl::bool_<Directive::template traits<Subject>::has_attribute>>::type>
+      : mpl::bool_<Directive::template traits<Subject>::has_attribute> {};
+      
+    // handles_container
+    template <typename Directive, typename Subject, typename Context>
+    struct handles_container<directive_parser<Directive, Subject>, Context,
+        typename disable_if_substitution_failure<
+            mpl::bool_<Directive::template traits<Subject>::handles_container>>::type>
+      : mpl::bool_<Directive::template traits<Subject>::handles_container> {};
+}}}}
 
 
 #endif
