@@ -4,8 +4,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //////////////////////////////////////////////////////////////////////////////*/
-#ifndef BOOST_SPIRIT_X3_EVAL_HPP_INCLUDED
-#define BOOST_SPIRIT_X3_EVAL_HPP_INCLUDED
+#ifndef BOOST_SPIRIT_X3_DETAIL_EVAL_HPP_INCLUDED
+#define BOOST_SPIRIT_X3_DETAIL_EVAL_HPP_INCLUDED
 
 
 #include <boost/spirit/home/x3/support/utility/is_callable.hpp>
@@ -41,17 +41,15 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 			return f(ctx);
 		}
 	};
-}}}}
-
-namespace boost { namespace spirit { namespace x3
-{
+	
 	template <typename T, typename Context>
 	auto eval(T&& val, Context const& ctx)->
 		decltype(detail::eval_impl<T, Context>::apply(val, ctx))
 	{
 		return detail::eval_impl<T, Context>::apply(val, ctx);
 	}
-}}}
+}}}}
 
 
 #endif
+

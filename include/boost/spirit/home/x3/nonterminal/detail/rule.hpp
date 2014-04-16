@@ -213,15 +213,14 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
         template <typename RHS, typename Iterator, typename Context
             , typename ActualAttribute, typename AttributePtr
-            , typename ArgsPtr, typename ExplicitAttrPropagation
-            , typename... Ts>
+            , typename ParamsPtr, typename ExplicitAttrPropagation>
         static bool call_rule_definition(
             RHS const& rhs
           , char const* rule_name
           , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr
-          , AttributePtr& attr_ptr, ArgsPtr& args_ptr
-          , ExplicitAttrPropagation, Ts&&... ts)
+          , Context const& context, ActualAttribute& attr, Params params
+          , AttributePtr& attr_ptr, ParamsPtr& params_ptr
+          , ExplicitAttrPropagation)
         {
             typedef traits::make_attribute<Attribute, ActualAttribute> make_attribute;
 
@@ -235,7 +234,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             typedef typename transform::type transform_attr;
             value_type made_attr = make_attribute::call(attr);
             transform_attr attr_ = transform::pre(made_attr);
-            Params args(std::forward<Ts>(ts)...);
 
 #if defined(BOOST_SPIRIT_X3_DEBUG)
             context_debug<Iterator, typename make_attribute::value_type>
@@ -243,7 +241,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 #endif
             attr_pointer_scope<typename remove_reference<transform_attr>::type>
                 attr_scope(attr_ptr, boost::addressof(attr_));
-            attr_pointer_scope<Params> args_scope(args_ptr, &args);
+            attr_pointer_scope<Params> params_scope(params_ptr, &params);
 
             if (parse_rhs(rhs, first, last, context, attr_
               , mpl::bool_<(RHS::has_action && !ExplicitAttrPropagation::value)>()))
@@ -276,7 +274,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
             return call_rule_definition(
                 rule_def.rhs, rule_name, first, last
-              , context, attr, attr_ctx.attr_ptr, attr_ctx.params_ptr
+              , context, attr, Params(std::forward<Ts>(ts)...)
+              , attr_ctx.attr_ptr, attr_ctx.params_ptr
               , mpl::bool_<(RuleDef::explicit_attribute_propagation)>()
               , std::forward<Ts>(ts)...);
         }

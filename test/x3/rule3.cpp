@@ -10,9 +10,10 @@
 
 #include <boost/detail/lightweight_test.hpp>
 #include <boost/spirit/home/x3.hpp>
-//~ #include <boost/phoenix/core.hpp>
-//~ #include <boost/phoenix/operator.hpp>
-//~ #include <boost/phoenix/object.hpp>
+#include <boost/spirit/home/x3/support/actor.hpp>
+#include <boost/phoenix/core.hpp>
+#include <boost/phoenix/operator.hpp>
+#include <boost/phoenix/object.hpp>
 //~ #include <boost/phoenix/bind.hpp>
 //~ #include <boost/fusion/include/std_pair.hpp>
 
@@ -23,6 +24,7 @@
 
 using boost::spirit::x3::get;
 using boost::spirit::x3::rule_context_tag;
+namespace x3 = boost::spirit::x3;
 
 struct f
 {
@@ -30,6 +32,26 @@ struct f
     void operator()(Context const& ctx, char c) const
     {
         get<rule_context_tag>(ctx).val() += c;
+    }
+};
+
+struct f1
+{
+    template <typename Context>
+    void operator()(Context const& ctx, char c) const
+    {
+        x3::_val(ctx) = c + std::get<0>(x3::_params(ctx));
+    }
+};
+
+struct f2
+{
+    char& ch;
+    
+    template <typename Context>
+    void operator()(Context const& ctx, char c) const
+    {
+        ch = c;
     }
 };
 
@@ -55,7 +77,7 @@ main()
     //~ using boost::spirit::x3::_r2;
     //~ using boost::spirit::x3::_a;
 
-    //~ namespace phx = boost::phoenix;
+    namespace phx = boost::phoenix;
 
     { // synth attribute value-init
 
@@ -69,7 +91,7 @@ main()
         BOOST_TEST(test_attr("abcdef", +rdef, s));
         BOOST_TEST(s == "abcdef");
     }
-
+#if 0
     { // synth attribute value-init
 
         std::string s;
@@ -86,36 +108,37 @@ main()
         BOOST_TEST(test_attr("abcdef", +rdef, s));
         BOOST_TEST(s == "abcdef");
     }
-
+#endif
     // $$$ Not yet implemented $$$
-    //~ { // context (w/arg) tests
+    { // context (w/arg) tests
+        BOOST_SPIRIT_USE_ACTORS(_val, _1, _r1, _r2)
+        
+        char ch;
+        rule<class A, char(int)> a; // 1 arg
+        auto adef(a = alpha[_val = _1 + _r1]);
 
-        //~ char ch;
-        //~ rule<char const*, char(int)> a; // 1 arg
-        //~ a = alpha[_val = _1 + _r1];
+        BOOST_TEST(test("x", adef(1)[phx::ref(ch) = _1]));
+        BOOST_TEST(ch == 'x' + 1);
 
-        //~ BOOST_TEST(test("x", a(phx::val(1))[phx::ref(ch) = _1]));
-        //~ BOOST_TEST(ch == 'x' + 1);
+        BOOST_TEST(test_attr("a", adef(1), ch)); // allow scalars as rule args too.
+        BOOST_TEST(ch == 'a' + 1);
 
-        //~ BOOST_TEST(test_attr("a", a(1), ch)); // allow scalars as rule args too.
-        //~ BOOST_TEST(ch == 'a' + 1);
+        rule<class B, char(int, int)> b; // 2 args
+        auto bdef(b = alpha[_val = _1 + _r1 + _r2]);
+        BOOST_TEST(test_attr("a", bdef(1, 2), ch));
+        BOOST_TEST(ch == 'a' + 1 + 2);
+    }
 
-        //~ rule<char const*, char(int, int)> b; // 2 args
-        //~ b = alpha[_val = _1 + _r1 + _r2];
-        //~ BOOST_TEST(test_attr("a", b(1, 2), ch));
-        //~ BOOST_TEST(ch == 'a' + 1 + 2);
-    //~ }
+    { // context (w/ reference arg) tests
+        BOOST_SPIRIT_USE_ACTORS(_1, _r1)
+        
+        char ch;
+        rule<class A, void(char&)> a; // 1 arg (reference)
+        auto adef(a = alpha[_r1 = _1]);
 
-    // $$$ Not yet implemented $$$
-    //~ { // context (w/ reference arg) tests
-
-        //~ char ch;
-        //~ rule<char const*, void(char&)> a; // 1 arg (reference)
-        //~ a = alpha[_r1 = _1];
-
-        //~ BOOST_TEST(test("x", a(phx::ref(ch))));
-        //~ BOOST_TEST(ch == 'x');
-    //~ }
+        BOOST_TEST(test("x", adef(ch))); // the arg is passed via universal-ref
+        BOOST_TEST(ch == 'x');
+    }
 
     // $$$ Not yet implemented $$$
     //~ { // context (w/locals) tests

@@ -47,7 +47,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 			static T const m = n / 2;
 			typedef typename make<m>::type part1;
 			typedef typename make<n - m>::type part2;
-			typedef concat<part1, typename offset<m, part2>::type> type;
+			typedef typename
+                concat<part1, typename offset<m, part2>::type>::type
+            type;
 		};
 
 		template<class Dummy>

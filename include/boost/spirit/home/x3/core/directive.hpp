@@ -14,7 +14,7 @@
 
 
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/support/eval.hpp>
+#include <boost/spirit/home/x3/core/detail/eval.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 
 
@@ -68,7 +68,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             return directive.parse(subject, first, last, context, attr,
-                eval(std::get<Ns>(params), context)...);
+                detail::eval(std::get<Ns>(params), context)...);
         }
 
         Directive directive;

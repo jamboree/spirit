@@ -9,21 +9,40 @@
 
 
 #include <tuple>
+#include <boost/spirit/home/x3/support/unused.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename Attribute>
+    struct void_to_unused
+    {
+        typedef Attribute type;
+    };
+    
+    template <>
+    struct void_to_unused<void>
+    {
+        typedef unused_type type;
+    };
+    
+    template <typename Attribute>
     struct decompose_attribute
     {
-        typedef Attribute result_type;
+        typedef typename
+            void_to_unused<Attribute>::type
+        result_type;
+        
         typedef std::tuple<> params_type;
     };
     
     template <typename Attribute, typename... Ts>
     struct decompose_attribute<Attribute(Ts...)>
     {
-        typedef Attribute result_type;
+        typedef typename
+            void_to_unused<Attribute>::type
+        result_type;
+        
         typedef std::tuple<Ts...> params_type;
     };
 }}}}
