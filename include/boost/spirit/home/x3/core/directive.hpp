@@ -13,6 +13,7 @@
 #endif
 
 
+#include <tuple>
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/detail/eval.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
@@ -27,8 +28,7 @@ namespace boost { namespace spirit { namespace x3
     struct directive_parser : unary_parser<Subject, directive_parser<Directive, Subject>>
     {
         typedef unary_parser<Subject, directive_parser<Directive, Subject>> base_type;
-        static bool const is_pass_through_unary = true;
-        static bool const handles_container = Subject::handles_container;
+        static bool const is_pass_through_unary = Directive::is_pass_through_unary;
 
         directive_parser(Directive const& directive, Subject const& subject)
           : base_type(subject), directive(directive) {}
@@ -46,6 +46,9 @@ namespace boost { namespace spirit { namespace x3
     template <typename Directive, typename... Ts>
     struct directive_caller
     {
+        template <typename Subject>
+        struct traits : Directive::template traits<Subject> {};
+        
         directive_caller(Directive const& directive, Ts&& ...ts)
           : directive(directive), params(std::forward<Ts>(ts)...) {}
 
@@ -81,6 +84,11 @@ namespace boost { namespace spirit { namespace x3
     template <typename Derived>
     struct directive
     {
+        static bool const is_pass_through_unary = false;
+        
+        template <typename Subject>
+        struct traits {};
+
         Derived const& derived() const
         {
             return *static_cast<Derived const*>(this);

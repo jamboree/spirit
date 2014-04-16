@@ -34,6 +34,8 @@ namespace boost { namespace spirit { namespace x3
 
     struct expect_directive : directive<expect_directive>
     {
+        static bool const is_pass_through_unary = true;
+        
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const

@@ -25,6 +25,8 @@ namespace boost { namespace spirit { namespace x3
     // same as lexeme[], but does not pre-skip
     struct no_skip_directive : directive<no_skip_directive>
     {
+        static bool const is_pass_through_unary = true;
+        
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename enable_if<has_skipper<Context>, bool>::type
         parse(Subject const& subject, Iterator& first, Iterator const& last

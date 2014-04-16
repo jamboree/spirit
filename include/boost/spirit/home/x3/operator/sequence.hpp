@@ -61,10 +61,10 @@ namespace boost { namespace spirit { namespace x3
     template <typename Left, typename Right>
     inline sequence<
         typename extension::as_parser<Left>::value_type
-      , expect_directive<typename extension::as_parser<Right>::value_type>>
+      , directive_parser<expect_directive, typename extension::as_parser<Right>::value_type>>
     operator>(Left const& left, Right const& right)
     {
-        return {as_parser(left), as_parser(right)};
+        return {as_parser(left), {expect_directive(), as_parser(right)}};
     }
 }}}
 

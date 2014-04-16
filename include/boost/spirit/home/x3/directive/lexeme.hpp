@@ -22,6 +22,8 @@ namespace boost { namespace spirit { namespace x3
 {
     struct lexeme_directive : directive<lexeme_directive>
     {
+        static bool const is_pass_through_unary = true;
+        
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename enable_if<has_skipper<Context>, bool>::type
         parse(Subject const& subject, Iterator& first, Iterator const& last

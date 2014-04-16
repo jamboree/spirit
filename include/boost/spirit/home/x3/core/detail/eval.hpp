@@ -8,6 +8,7 @@
 #define BOOST_SPIRIT_X3_DETAIL_EVAL_HPP_INCLUDED
 
 
+#include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/support/utility/is_callable.hpp>
 
 
@@ -24,17 +25,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
 	template <typename F, typename Context>
 	struct eval_impl<F, Context,
-		typename enable_if<is_callable<F()>, void>::type>
-	{
-		static auto apply(F&& f, Context const&)->decltype(f())
-		{
-			return f();
-		}
-	};
-
-	template <typename F, typename Context>
-	struct eval_impl<F, Context,
-		typename enable_if<is_callable<F(Context const&)>, void>::type>
+		typename enable_if_c<!is_parser<typename std::decay<F>::type>::value
+            && is_callable<F(Context const&)>::value, void>::type>
 	{
 		static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
 		{
