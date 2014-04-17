@@ -7,7 +7,6 @@
 #ifndef BOOST_SPIRIT_X3_SUPPORT_UTILITY_INTEGER_SEQUENCE_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_SUPPORT_UTILITY_INTEGER_SEQUENCE_HPP_INCLUDED
 
-
 #if defined(_MSC_VER)
 #pragma once
 #endif
@@ -26,48 +25,48 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 {
 	template<class T>
 	struct integer_sequence_builder
-	{
-		template<class S1, class S2>
-		struct concat;
+    {
+    	template<class S1, class S2>
+    	struct concat;
 
-		template<T... n1, T... n2>
-		struct concat<integer_sequence<T, n1...>, integer_sequence<T, n2...>>
-		{
-			typedef integer_sequence<T, n1..., n2...> type;
-		};
+    	template<T... n1, T... n2>
+    	struct concat<integer_sequence<T, n1...>, integer_sequence<T, n2...>>
+        {
+        	typedef integer_sequence<T, n1..., n2...> type;
+        };
 
-		template<T n, class S>
-		struct offset;
+    	template<T n, class S>
+    	struct offset;
 
-		template<T n, T... ns>
-		struct offset<n, integer_sequence<T, ns...>>
-		{
-			typedef integer_sequence<T, (n + ns)...> type;
-		};
+    	template<T n, T... ns>
+    	struct offset<n, integer_sequence<T, ns...>>
+        {
+        	typedef integer_sequence<T, (n + ns)...> type;
+        };
 
-		template<T n, class = void>
-		struct make
-		{
-			static T const m = n / 2;
-			typedef typename make<m>::type part1;
-			typedef typename make<n - m>::type part2;
-			typedef typename
+    	template<T n, class = void>
+    	struct make
+        {
+        	static T const m = n / 2;
+        	typedef typename make<m>::type part1;
+        	typedef typename make<n - m>::type part2;
+        	typedef typename
                 concat<part1, typename offset<m, part2>::type>::type
             type;
-		};
+        };
 
-		template<class Dummy>
-		struct make<0, Dummy>
-		{
-			typedef integer_sequence<T> type;
-		};
-		
-		template<class Dummy>
-		struct make<1, Dummy>
-		{
-			typedef integer_sequence<T, 0> type;
-		};
-	};
+    	template<class Dummy>
+    	struct make<0, Dummy>
+        {
+        	typedef integer_sequence<T> type;
+        };
+        
+    	template<class Dummy>
+    	struct make<1, Dummy>
+        {
+        	typedef integer_sequence<T, 0> type;
+        };
+    };
 }}}}
 
 namespace boost { namespace spirit { namespace x3
@@ -77,8 +76,8 @@ namespace boost { namespace spirit { namespace x3
 
 	template<class T, T n>
 	using make_integer_sequence =
-		typename detail::integer_sequence_builder<T>::
-			template make<n>::type;
+    	typename detail::integer_sequence_builder<T>::
+        	template make<n>::type;
 
 	template<std::size_t n>
 	using make_index_sequence = make_integer_sequence<std::size_t, n>;

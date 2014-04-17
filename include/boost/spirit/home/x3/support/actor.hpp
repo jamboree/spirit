@@ -71,9 +71,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         {
             return x3::get<rule_context_tag>(fusion::at_c<0>(env.args())).val();
         }
-//        template <typename Env>
-//        void eval(Env const& env) const
-//        {}
     };
     
     template <int N>
