@@ -12,41 +12,35 @@
 #endif
 
 #include <tuple>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/has_xxx.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
-#include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
-    BOOST_MPL_HAS_XXX_TRAIT_DEF(transform_params)
-
     template <typename Subject, typename Tuple, typename = void>
     struct transform_params
     {
         typedef Tuple type;
-        typedef
-            mpl::int_<has_transform_params<Subject>::value && std::tuple_size<Tuple>::value>
-        invoke_tag;
+        typedef mpl::false_ is_transformed;
+        typedef bool no;
     };
     
     template <typename Subject, typename... Ts>
     struct transform_params<Subject, std::tuple<Ts...>,
-        typename disable_if_substitution_failure<decltype(Subject::transform_params::apply(declval<Ts&&>...))>::type>
+        typename disable_if_substitution_failure<decltype(Subject::transform_params(declval<Ts&&>...))>::type>
     {
         struct type
         {
-            typedef typename Subject::transform_params transform;
-            
             type(Ts&& ...ts)
-              : data(transform::apply(std::forward<Ts>(ts)...))
+              : data(Subject::transform_params(std::forward<Ts>(ts)...))
             {}
 
-            decltype(transform::apply(declval<Ts&&>...)) data;
+            decltype(Subject::transform_params(declval<Ts&&>...)) data;
         };
 
-        typedef mpl::int_<2> invoke_tag;
+        typedef mpl::true_ is_transformed;
+        typedef bool yes;
     };
 }}}}
 

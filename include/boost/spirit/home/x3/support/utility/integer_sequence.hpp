@@ -16,7 +16,7 @@
 
 namespace boost { namespace spirit { namespace x3
 {
-    template<class T, T... ns>
+    template<class T, T... Ns>
     struct integer_sequence
     {};
 }}}
@@ -29,27 +29,27 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         template<class S1, class S2>
         struct concat;
 
-        template<T... n1, T... n2>
-        struct concat<integer_sequence<T, n1...>, integer_sequence<T, n2...>>
+        template<T... N1, T... N2>
+        struct concat<integer_sequence<T, N1...>, integer_sequence<T, N2...>>
         {
-            typedef integer_sequence<T, n1..., n2...> type;
+            typedef integer_sequence<T, N1..., N2...> type;
         };
 
-        template<T n, class S>
+        template<T N, class S>
         struct offset;
 
-        template<T n, T... ns>
-        struct offset<n, integer_sequence<T, ns...>>
+        template<T N, T... Ns>
+        struct offset<N, integer_sequence<T, Ns...>>
         {
-            typedef integer_sequence<T, (n + ns)...> type;
+            typedef integer_sequence<T, (N + Ns)...> type;
         };
 
-        template<T n, class = void>
+        template<T N, class = void>
         struct make
         {
-            static T const m = n / 2;
+            static T const m = N / 2;
             typedef typename make<m>::type part1;
-            typedef typename make<n - m>::type part2;
+            typedef typename make<N - m>::type part2;
             typedef typename
                 concat<part1, typename offset<m, part2>::type>::type
             type;
@@ -71,16 +71,16 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
 namespace boost { namespace spirit { namespace x3
 {
-    template<std::size_t... ns>
-    using index_sequence = integer_sequence<std::size_t, ns...>;
+    template<std::size_t... Ns>
+    using index_sequence = integer_sequence<std::size_t, Ns...>;
 
-    template<class T, T n>
+    template<class T, T N>
     using make_integer_sequence =
         typename detail::integer_sequence_builder<T>::
-            template make<n>::type;
+            template make<N>::type;
 
-    template<std::size_t n>
-    using make_index_sequence = make_integer_sequence<std::size_t, n>;
+    template<std::size_t N>
+    using make_index_sequence = make_integer_sequence<std::size_t, N>;
 
     template<class... T>
     using index_sequence_for = make_index_sequence<sizeof...(T)>;

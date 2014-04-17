@@ -64,43 +64,51 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            typename transform::invoke_tag tag;
+            typename transform::is_transformed tag;
             make_index_sequence<sizeof...(Ts)> indices;
-            return invoke_parse(tag, indices, subject, first, last, context, attr);
-        }
-        
-        // no transform_params
-        template <std::size_t... Ns, typename Subject
-            , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<0>, index_sequence<Ns...>
-          , Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return directive.parse(subject, first, last, context, attr,
-                detail::eval(std::get<Ns>(params), context)...);
-        }
-
-        // post-transform
-        template <std::size_t... Ns, typename Subject
-            , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<1>, index_sequence<Ns...>
-          , Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return directive.parse(subject, first, last, context, attr,
-                Subject::transform_params::apply(
-                    detail::eval(std::get<Ns>(params), context)...));
+            return parse_impl(tag, indices, subject, first, last, context, attr);
         }
         
         // transformed
         template <std::size_t... Ns, typename Subject
             , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<2>, index_sequence<Ns...>
+        bool parse_impl(mpl::true_, index_sequence<Ns...>
           , Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
             return directive.parse(
                 subject, first, last, context, attr, params.data);
+        }
+        
+        // no transform_params
+        template <std::size_t... Ns, typename Subject
+            , typename Iterator, typename Context, typename Attribute>
+        bool parse_impl(mpl::false_, index_sequence<Ns...>
+          , Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            return invoke_parse(subject, first, last, context, attr,
+                detail::eval(std::get<Ns>(params), context)...);
+        }
+        
+        template <typename Subject, typename Iterator, typename Context
+            , typename Attribute, typename... As>
+        typename detail::transform_params<Subject, std::tuple<As...>>::yes
+        invoke_parse(Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, As&&... as) const
+        {
+            return directive.parse(subject, first, last, context, attr,
+                Subject::transform_params(std::forward<As>(as)...));
+        }
+        
+        template <typename Subject, typename Iterator, typename Context
+            , typename Attribute, typename... As>
+        typename detail::transform_params<Subject, std::tuple<As...>>::no
+        invoke_parse(Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, As&&... as) const
+        {
+            return directive.parse(
+                subject, first, last, context, attr, std::forward<As>(as)...);
         }
         
         Directive directive;

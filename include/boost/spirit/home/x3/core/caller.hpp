@@ -32,42 +32,48 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            typename transform::invoke_tag tag;
+            typename transform::is_transformed tag;
             make_index_sequence<sizeof...(Ts)> indices;
-            return invoke_parse(tag, indices, first, last, context, attr);
-        }
-        
-        // no transform_params
-        template <std::size_t... Ns
-            , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<0>, index_sequence<Ns...>
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return this->subject.parse(first, last, context, attr,
-                detail::eval(std::get<Ns>(params), context)...);
-        }
-
-        // post-transform
-        template <std::size_t... Ns
-            , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<1>, index_sequence<Ns...>
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return this->subject.parse(first, last, context, attr,
-                Subject::transform_params::apply(
-                    detail::eval(std::get<Ns>(params), context)...));
+            return parse_impl(tag, indices, first, last, context, attr);
         }
 
         // transformed
         template <std::size_t... Ns
             , typename Iterator, typename Context, typename Attribute>
-        bool invoke_parse(mpl::int_<2>, index_sequence<Ns...>
+        bool parse_impl(mpl::true_, index_sequence<Ns...>
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
             return this->subject.parse(first, last, context, attr, params.data);
+        }
+        
+        // not transformed
+        template <std::size_t... Ns
+            , typename Iterator, typename Context, typename Attribute>
+        bool parse_impl(mpl::false_, index_sequence<Ns...>
+          , Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            return invoke_parse(first, last, context, attr,
+                detail::eval(std::get<Ns>(params), context)...);
+        }
+        
+        template <typename Iterator, typename Context, typename Attribute, typename... As>
+        typename detail::transform_params<Subject, std::tuple<As...>>::yes
+        invoke_parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, As&&... as) const
+        {
+            return this->subject.parse(first, last, context, attr,
+                Subject::transform_params(std::forward<As>(as)...));
+        }
+        
+        template <typename Iterator, typename Context, typename Attribute, typename... As>
+        typename detail::transform_params<Subject, std::tuple<As...>>::no
+        invoke_parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, As&&... as) const
+        {
+            return this->subject.parse(
+                first, last, context, attr, std::forward<As>(as)...);
         }
         
         typename transform::type params;
