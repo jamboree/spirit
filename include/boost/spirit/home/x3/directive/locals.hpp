@@ -20,6 +20,14 @@ namespace boost { namespace spirit { namespace x3
 {
     struct locals_tag;
     
+    template <typename Context>
+    inline auto
+    _locals(Context const& context)
+    -> decltype(x3::get<locals_tag>(context))
+    {
+        return x3::get<locals_tag>(context);
+    }
+        
     template <typename... Ts>
     struct locals_directive : directive<locals_directive<Ts...>>
     {
