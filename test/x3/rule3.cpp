@@ -62,7 +62,7 @@ main()
     using spirit_test::test;
 
     using namespace boost::spirit::x3::ascii;
-    //~ using boost::spirit::x3::locals;
+    using boost::spirit::x3::locals;
     using boost::spirit::x3::rule;
     using boost::spirit::x3::int_;
     //~ using boost::spirit::x3::uint_;
@@ -91,7 +91,7 @@ main()
         BOOST_TEST(test_attr("abcdef", +rdef, s));
         BOOST_TEST(s == "abcdef");
     }
-#if 0
+
     { // synth attribute value-init
 
         std::string s;
@@ -108,8 +108,7 @@ main()
         BOOST_TEST(test_attr("abcdef", +rdef, s));
         BOOST_TEST(s == "abcdef");
     }
-#endif
-    // $$$ Not yet implemented $$$
+
     { // context (w/arg) tests
         BOOST_SPIRIT_USE_ACTORS(_val, _1, _r1, _r2)
         
@@ -139,16 +138,16 @@ main()
         BOOST_TEST(test("x", adef(ch))); // the arg is passed via universal-ref
         BOOST_TEST(ch == 'x');
     }
-
-    // $$$ Not yet implemented $$$
-    //~ { // context (w/locals) tests
-
-        //~ rule<char const*, locals<char> > a; // 1 local
-        //~ a = alpha[_a = _1] >> char_(_a);
-        //~ BOOST_TEST(test("aa", a));
-        //~ BOOST_TEST(!test("ax", a));
-    //~ }
-
+#if 0
+    { // context (w/locals) tests
+        BOOST_SPIRIT_USE_ACTORS(_1, _a)
+        
+        rule<class A> a; // 1 local
+        auto adef(a = locals<char>()[alpha[_a = _1] >> char_(_a)]);
+        BOOST_TEST(test("aa", adef));
+        BOOST_TEST(!test("ax", adef));
+    }
+#endif 
     // $$$ Not yet implemented $$$
     //~ { // context (w/args and locals) tests
 

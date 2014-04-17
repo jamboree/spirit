@@ -8,6 +8,10 @@
 #define BOOST_SPIRIT_X3_SUPPORT_UTILITY_INTEGER_SEQUENCE_HPP_INCLUDED
 
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
+
 #include <cstddef>
 
 

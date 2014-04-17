@@ -7,6 +7,9 @@
 #ifndef BOOST_SPIRIT_X3_ACTOR_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_ACTOR_HPP_INCLUDED
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
 
 #include <tuple>
 #include <boost/phoenix/core.hpp>

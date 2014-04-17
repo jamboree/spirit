@@ -8,6 +8,10 @@
 #define BOOST_SPIRIT_X3_IS_CALLABLE_HPP_INCLUDED
 
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
+
 #include <boost/utility/declval.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/integral_constant.hpp>
