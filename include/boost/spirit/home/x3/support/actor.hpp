@@ -180,7 +180,7 @@ BOOST_PHOENIX_DEFINE_CUSTOM_TERMINAL(
 )
 
 #define SPIRIT_USE_ACTOR(r, data, elem)                                         \
-    BOOST_PP_CAT(::boost::spirit::x3::elem, _type) elem;
+    BOOST_PP_CAT(::boost::spirit::x3::elem, _type) const elem{};
 
 #define BOOST_SPIRIT_USE_ACTORS(...) BOOST_PP_SEQ_FOR_EACH(                     \
     SPIRIT_USE_ACTOR, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
