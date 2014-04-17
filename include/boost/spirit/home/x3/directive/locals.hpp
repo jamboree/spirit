@@ -18,14 +18,14 @@
 
 namespace boost { namespace spirit { namespace x3
 {
-    struct locals_tag;
+    struct local_variables_tag;
     
     template <typename Context>
     inline auto
-    _locals(Context const& context)
-    -> decltype(x3::get<locals_tag>(context))
+    _vars(Context const& context)
+    -> decltype(x3::get<local_variables_tag>(context))
     {
-        return x3::get<locals_tag>(context);
+        return x3::get<local_variables_tag>(context);
     }
         
     template <typename... Ts>
@@ -38,7 +38,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr, As&&... as) const
         {
             std::tuple<Ts...> locals(std::forward<As>(as)...);
-            auto ctx(make_context<locals_tag>(locals, context));
+            auto ctx(make_context<local_variables_tag>(locals, context));
             return subject.parse(first, last, ctx, attr);
         }
     };
