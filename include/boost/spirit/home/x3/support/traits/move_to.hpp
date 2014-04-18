@@ -15,6 +15,7 @@
 
 #include <boost/spirit/home/x3/support/traits/attribute_category.hpp>
 #include <boost/spirit/home/x3/support/traits/tuple_traits.hpp>
+#include <boost/spirit/home/x3/support/traits/variant_has_substitute.hpp>
 #include <boost/fusion/include/is_sequence.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/include/size.hpp>
@@ -87,12 +88,35 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
         {
             dest = std::move(src);
         }
+        
+        template <typename Source, typename Dest>
+        inline void
+        move_to_variant_from_single_element_sequence(Source&& src, Dest& dest, mpl::false_)
+        {
+            // dest is a variant, src is a single element fusion sequence that the variant
+            // cannot directly hold. We'll try to unwrap the single element fusion sequence.
+            
+            // Make sure that the Dest variant can really hold Source
+            static_assert(variant_has_substitute<Dest, typename fusion::result_of::front<Source>::type>::value,
+                "Error! The destination variant (Dest) cannot hold the source type (Source)");
+            
+            dest = std::move(fusion::front(src));
+        }
+        
+        template <typename Source, typename Dest>
+        inline void
+        move_to_variant_from_single_element_sequence(Source&& src, Dest& dest, mpl::true_)
+        {
+            // dest is a variant, src is a single element fusion sequence that the variant
+            // *can* directly hold.
+            dest = std::move(src);
+        }
 
         template <typename Source, typename Dest>
         inline void
         move_to(Source&& src, Dest& dest, variant_attribute, mpl::true_)
         {
-            dest = std::move(fusion::front(src));
+            move_to_variant_from_single_element_sequence(src, dest, variant_has_substitute<Dest, Source>());
         }
 
         template <typename Source, typename Dest>
