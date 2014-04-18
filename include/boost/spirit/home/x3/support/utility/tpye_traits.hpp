@@ -4,9 +4,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //////////////////////////////////////////////////////////////////////////////*/
-#ifndef BOOST_SPIRIT_X3_IS_CALLABLE_HPP_INCLUDED
-#define BOOST_SPIRIT_X3_IS_CALLABLE_HPP_INCLUDED
-
+#ifndef BOOST_SPIRIT_X3_TYPE_TRAITS_HPP_INCLUDED
+#define BOOST_SPIRIT_X3_TYPE_TRAITS_HPP_INCLUDED
 
 #if defined(_MSC_VER)
 #pragma once
@@ -43,6 +42,18 @@ namespace boost { namespace spirit { namespace x3
     struct is_callable<F(A...)>
       : detail::is_callable_impl<F(A...)>
     {};
+	
+	template <typename T>
+	struct remove_rvalue_reference
+	{
+	    typedef T type;
+	};
+	
+	template <typename T>
+	struct remove_rvalue_reference<T&&>
+	{
+	    typedef T type;
+	};
 }}}
 
 

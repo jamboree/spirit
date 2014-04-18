@@ -12,7 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/support/utility/is_callable.hpp>
+#include <boost/spirit/home/x3/support/utility/tpye_traits.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
@@ -38,11 +38,16 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 	};
 	
 	template <typename T, typename Context>
-	auto eval(T&& val, Context const& ctx)->
+	inline auto eval(T&& val, Context const& ctx)->
 		decltype(detail::eval_impl<T, Context>::apply(val, ctx))
 	{
 		return detail::eval_impl<T, Context>::apply(val, ctx);
 	}
+	
+	template <typename T, typename Context>
+	using result_of_eval =
+        typename remove_rvalue_reference<
+            decltype(eval(declval<T>(), declval<Context>()))>::type;
 }}}}
 
 

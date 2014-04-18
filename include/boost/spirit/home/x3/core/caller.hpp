@@ -80,6 +80,48 @@ namespace boost { namespace spirit { namespace x3
     };
 }}}
 
+namespace boost { namespace spirit { namespace x3 { namespace traits
+{
+    // attribute_of
+    template <typename Subject, typename... Ts, typename Context>
+    struct attribute_of<caller<Subject, Ts...>, Context,
+        typename disable_if_substitution_failure<
+            typename Subject::template caller_traits<
+                x3::detail::result_of_eval<Ts, Context>...>::attribute_type>::type>
+      : mpl::identity<typename Subject::template caller_traits<
+            x3::detail::result_of_eval<Ts, Context>...>::attribute_type>
+    {};
+    
+    template <typename Subject, typename... Ts, typename Context>
+    struct attribute_of<caller<Subject, Ts...>, Context,
+        typename disable_if_substitution_failure<
+            typename Subject::template caller_traits<
+                x3::detail::result_of_eval<Ts, Context>...>::
+                    template attribute<Context>::type>::type>
+      : mpl::identity<typename Subject::template caller_traits<
+            x3::detail::result_of_eval<Ts, Context>...>::
+                template attribute<Context>::type>
+    {};
+    
+    // has_attribute
+    template <typename Subject, typename... Ts, typename Context>
+    struct has_attribute<caller<Subject, Ts...>, Context,
+        typename disable_if_substitution_failure<
+            mpl::bool_<Subject::template caller_traits<
+                x3::detail::result_of_eval<Ts, Context>...>::has_attribute>>::type>
+      : mpl::bool_<Subject::template caller_traits<
+            x3::detail::result_of_eval<Ts, Context>...>::has_attribute> {};
+      
+    // handles_container
+    template <typename Subject, typename... Ts, typename Context>
+    struct handles_container<caller<Subject, Ts...>, Context,
+        typename disable_if_substitution_failure<
+            mpl::bool_<Subject::template caller_traits<
+                x3::detail::result_of_eval<Ts, Context>...>::handles_container>>::type>
+      : mpl::bool_<Subject::template caller_traits<
+            x3::detail::result_of_eval<Ts, Context>...>::handles_container> {};
+}}}}
+
 
 #endif
 
