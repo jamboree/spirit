@@ -18,6 +18,7 @@ main()
     using spirit_test::test_attr;
     using boost::spirit::x3::attr;
     using boost::spirit::x3::int_;
+    using boost::spirit::x3::unused_type;
 
     {
         int d = 0;
@@ -44,16 +45,13 @@ main()
             vec[0] == 0 && vec[1] == 1 && vec[2] == 2);
     }
 
-    //~ {   // testing lazy constructs
-        //~ using boost::phoenix::val;
-        //~ using boost::phoenix::ref;
+    {   // testing lazy constructs
+        double d = 0.0;
+        BOOST_TEST(test_attr("", attr([](unused_type) { return 1.0; }), d) && d == 1.0);
 
-        //~ int d = 0;
-        //~ BOOST_TEST(test_attr("", attr(val(1)), d) && d == 1);
-
-        //~ int d1 = 2;
-        //~ BOOST_TEST(test_attr("", attr(ref(d1)), d) && d == 2);
-    //~ }
+        double d1 = 2.0;
+        BOOST_TEST(test_attr("", attr([&](unused_type) { return d1; }), d) && d == 2.0);
+    }
 
     {
         std::string s;
