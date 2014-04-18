@@ -39,9 +39,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 	
 	template <typename T, typename Context>
 	inline auto eval(T&& val, Context const& ctx)->
-		decltype(detail::eval_impl<T, Context>::apply(val, ctx))
+		decltype(eval_impl<T, Context>::apply(std::forward<T>(val), ctx))
 	{
-		return detail::eval_impl<T, Context>::apply(val, ctx);
+		return eval_impl<T, Context>::apply(std::forward<T>(val), ctx);
 	}
 	
 	template <typename T, typename Context>

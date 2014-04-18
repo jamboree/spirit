@@ -14,7 +14,27 @@
 #include <boost/spirit/home/x3/core/detail/eval.hpp>
 #include <boost/spirit/home/x3/core/detail/transform_params.hpp>
 #include <boost/spirit/home/x3/support/context.hpp>
+#include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
+#include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
+#include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 
+
+namespace boost { namespace spirit { namespace x3 { namespace detail
+{
+    template <template<typename...> class>
+    struct enable_if_template
+    {
+        typedef void type;
+    };
+    
+    template <typename Subject, typename = void>
+    struct has_caller_traits : mpl::false_ {};
+    
+    template <typename Subject>
+    struct has_caller_traits<Subject,
+        typename enable_if_template<Subject::template caller_traits>::type>
+      : mpl::true_ {};
+}}}}
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -23,7 +43,8 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unary_parser<Subject, caller<Subject, Ts...>> base_type;
         typedef detail::transform_params<Subject, std::tuple<Ts...>> transform;
-        static bool const is_pass_through_unary = true;
+        static bool const is_pass_through_unary =
+            !detail::has_caller_traits<Subject>::value;
 
         caller(Subject const& subject, Ts&& ...ts)
           : base_type(subject), params(std::forward<Ts>(ts)...) {}
