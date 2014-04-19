@@ -14,29 +14,44 @@
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
-#include <boost/spirit/home/x3/support/utility/tpye_traits.hpp>
+#include <boost/spirit/home/x3/support/utility/type_traits.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
 #include <boost/type_traits/is_class.hpp>
+#include <boost/type_traits/is_member_pointer.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/mem_fn.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename Action, typename Context, typename Attribute>
-    struct action_category
-      : mpl::eval_if
-        <
-            is_callable<Action(Context, Attribute)>, mpl::int_<2>
-          , mpl::eval_if
-            <
-                is_callable<Action(Attribute)>, mpl::int_<1>
-              , mpl::if_
-                <
-                    is_callable<Action()>, mpl::int_<0>, mpl::int_<-1>
-                >
-            >
-        >
-    {};
+    using action_category = typename mpl::eval_if<
+        is_callable<Action(Context, Attribute)>, mpl::int_<2>
+      , mpl::eval_if<is_callable<Action(Attribute)>, mpl::int_<1>
+          , mpl::if_<is_callable<Action()>, mpl::int_<0>, mpl::int_<-1>>>>::type;
+
+    template <typename Action, typename = void>
+    struct wrap_action
+    {
+        typedef Action type;
+
+        static Action&& apply(Action& f)
+        {
+            return std::move(f);
+        }
+    };
+    
+    template <typename Action>
+    struct wrap_action<Action,
+        typename enable_if<is_member_pointer<Action>>::type>
+    {
+        typedef decltype(mem_fn(declval<Action>())) type;
+
+        static type apply(Action f)
+        {
+            return mem_fn(f);
+        }
+    };
 }}}};
 
 namespace boost { namespace spirit { namespace x3
@@ -54,11 +69,13 @@ namespace boost { namespace spirit { namespace x3
     struct action : unary_parser<Subject, action<Subject, Action>>
     {
         typedef unary_parser<Subject, action<Subject, Action>> base_type;
+        typedef detail::wrap_action<Action> wrap_action;
+        typedef typename wrap_action::type action_type;
         static bool const is_pass_through_unary = true;
         static bool const has_action = true;
 
         action(Subject const& subject, Action f)
-          : base_type(subject), f(f) {}
+          : base_type(subject), f(wrap_action::apply(f)) {}
 
         template <typename Context, typename Attribute>
         bool call_action(mpl::int_<2>, Context const& context, Attribute& attr) const
@@ -138,22 +155,15 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            typedef
-                x3::context<parse_pass_context_tag, bool, Context>
-            context_type;
-            
-            typedef typename
-                traits::attribute_of<Subject, Context>::type
-            attribute_type;
-            
-            typename
-                detail::action_category<Action, context_type, attribute_type>::type
-            tag;
-            
+            detail::action_category<
+                action_type
+              , x3::context<parse_pass_context_tag, bool, Context>
+              , typename traits::attribute_of<Subject, Context>::type> tag;
+
             return parse_impl(tag, first, last, context, attr);
         }
 
-        Action f;
+        action_type f;
     };
 
     template <typename P, typename Action>

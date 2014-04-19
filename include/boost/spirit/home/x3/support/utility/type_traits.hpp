@@ -13,6 +13,7 @@
 
 #include <boost/utility/declval.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/utility/result_of.hpp>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
@@ -26,9 +27,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     {};
 
     template<class F, class... A>
-    struct is_callable_impl<F(A...),
-        typename disable_if_substitution_failure<
-            decltype(declval<F>()(declval<A>()...))>::type>
+    struct is_callable_impl<F(A...), typename disable_if_substitution_failure<
+        typename result_of<F(A...)>::type>::type>
       : true_type
     {};
 }}}}

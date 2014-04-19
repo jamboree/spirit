@@ -92,22 +92,22 @@ main()
         BOOST_TEST(s == "abcdef");
     }
 
-    { // synth attribute value-init
+//    { // synth attribute value-init
 
-        std::string s;
-        typedef rule<class r, std::string> rule_type;
-       
-        auto rdef = rule_type() =
-            alpha /
-               [](auto& r, char c)
-               {
-                  _val(r) += c;
-               }
-            ;
+//        std::string s;
+//        typedef rule<class r, std::string> rule_type;
+//       
+//        auto rdef = rule_type() =
+//            alpha /
+//               [](auto& r, char c)
+//               {
+//                  _val(r) += c;
+//               }
+//            ;
 
-        BOOST_TEST(test_attr("abcdef", +rdef, s));
-        BOOST_TEST(s == "abcdef");
-    }
+//        BOOST_TEST(test_attr("abcdef", +rdef, s));
+//        BOOST_TEST(s == "abcdef");
+//    }
 
     { // context (w/arg) tests
         BOOST_SPIRIT_USE_ACTORS(_val, _1, _r1, _r2)
