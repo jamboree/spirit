@@ -76,6 +76,7 @@ namespace boost { namespace spirit { namespace x3
             !is_same<Attribute, unused_type>::value;
         static bool const handles_container =
             traits::is_container<Attribute>::value;
+        static bool const caller_is_pass_through_unary = true;
         static bool const explicit_attribute_propagation =
             explicit_attribute_propagation_;
 

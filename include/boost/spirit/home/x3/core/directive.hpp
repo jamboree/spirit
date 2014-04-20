@@ -28,6 +28,7 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unary_parser<Subject, directive_parser<Directive, Subject>> base_type;
         static bool const is_pass_through_unary = Directive::is_pass_through_unary;
+        static bool const handles_container = Subject::handles_container;
 
         directive_parser(Directive const& directive, Subject const& subject)
           : base_type(subject), directive(directive) {}
@@ -46,6 +47,8 @@ namespace boost { namespace spirit { namespace x3
     struct directive_caller
     {
         typedef detail::transform_params<Directive, std::tuple<Ts...>> transform;
+        static bool const is_pass_through_unary =
+            Directive::caller_is_pass_through_unary;
         
         directive_caller(Directive const& directive, Ts&& ...ts)
           : directive(directive), params(std::forward<Ts>(ts)...) {}
@@ -116,6 +119,7 @@ namespace boost { namespace spirit { namespace x3
     struct directive
     {
         static bool const is_pass_through_unary = false;
+        static bool const caller_is_pass_through_unary = false;
 
         Derived const& derived() const
         {

@@ -21,6 +21,7 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unused_type attribute_type;
         static bool const has_attribute = false;
+        static bool const caller_is_pass_through_unary = true;
 
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
