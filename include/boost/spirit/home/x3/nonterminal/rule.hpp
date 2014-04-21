@@ -117,6 +117,7 @@ namespace boost { namespace spirit { namespace x3
             !is_same<attribute_type, unused_type>::value;
         static bool const handles_container =
             traits::is_container<attribute_type>::value;
+        static bool const caller_is_pass_through_unary = true;
 
 #if !defined(BOOST_SPIRIT_X3_NO_RTTI)
         rule(char const* name = typeid(rule).name()) : name(name) {}
