@@ -32,7 +32,6 @@ namespace boost { namespace spirit { namespace x3
     struct locals_directive : directive<locals_directive<Ts...>>
     {
         static bool const is_pass_through_unary = true;
-        static bool const caller_is_pass_through_unary = true;
         
         template <typename Subject, typename Iterator, typename Context, typename Attribute, typename... As>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
