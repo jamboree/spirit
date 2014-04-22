@@ -28,7 +28,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
 	template <typename F, typename Context>
 	struct eval_impl<F, Context,
-		typename enable_if_c<!is_parser<F>::value
+		typename enable_if_c<!is_parser<typename std::decay<F>::type>::value
             && is_callable<F(Context const&)>::value, void>::type>
 	{
 		static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
