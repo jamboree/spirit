@@ -20,28 +20,28 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 	template <typename T, typename Context, typename = void>
 	struct eval_impl
 	{
-		static T&& apply(T&& val, Context const&)
+		static T& apply(T& val, Context&)
 		{
-			return std::forward<T>(val);
+			return val;
 		}
 	};
 
 	template <typename F, typename Context>
 	struct eval_impl<F, Context,
-		typename enable_if_c<!is_parser<typename std::decay<F>::type>::value
-            && is_callable<F(Context const&)>::value, void>::type>
+		typename enable_if_c<!is_parser<F>::value
+            && is_callable<F(Context&)>::value, void>::type>
 	{
-		static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
+		static auto apply(F& f, Context& ctx)->decltype(f(ctx))
 		{
 			return f(ctx);
 		}
 	};
 	
 	template <typename T, typename Context>
-	inline auto eval(T&& val, Context const& ctx)->
-		decltype(eval_impl<T, Context>::apply(std::forward<T>(val), ctx))
+	inline auto eval(T const& val, Context const& ctx)->
+		decltype(eval_impl<T const, Context const>::apply(val, ctx))
 	{
-		return eval_impl<T, Context>::apply(std::forward<T>(val), ctx);
+		return eval_impl<T const, Context const>::apply(val, ctx);
 	}
 	
 	template <typename T, typename Context>

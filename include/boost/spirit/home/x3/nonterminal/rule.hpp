@@ -13,6 +13,7 @@
 
 #include <boost/spirit/home/x3/nonterminal/detail/rule.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/decompose_attribute.hpp>
+#include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/spirit/home/x3/support/context.hpp>
 
@@ -87,7 +88,9 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr, Ts&&... ts) const
         {
-            static_assert(std::tuple_size<Params>::value == sizeof...(Ts), "args/params size not matched");
+            static_assert(
+                detail::check_args<Params, Ts...>::value
+              , "args/params not matched");
             
             rule_context<Attribute, Params> r_context;
             auto rule_ctx1 = make_context<rule_context_with_id_tag<ID>>(r_context, context);

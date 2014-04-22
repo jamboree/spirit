@@ -31,8 +31,9 @@ namespace boost { namespace spirit { namespace x3
             Subject::caller_is_pass_through_unary;
         static bool const handles_container = Subject::handles_container;
 
-        caller(Subject const& subject, Ts&& ...ts)
-          : base_type(subject), params(std::forward<Ts>(ts)...) {}
+        template <typename... As>
+        caller(Subject const& subject, As&&... as)
+          : base_type(subject), params(std::forward<As>(as)...) {}
           
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last

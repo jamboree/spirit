@@ -63,8 +63,9 @@ namespace boost { namespace spirit { namespace x3
         static bool const is_pass_through_unary =
             detail::caller_is_pass_through_unary<Directive>::value;
         
-        directive_caller(Directive const& directive, Ts&& ...ts)
-          : directive(directive), params(std::forward<Ts>(ts)...) {}
+        template <typename... As>
+        directive_caller(Directive const& directive, As&&... as)
+          : directive(directive), params(std::forward<As>(as)...) {}
 
         template <typename Subject>
         directive_parser<directive_caller, typename extension::as_parser<Subject>::value_type>
@@ -152,8 +153,8 @@ namespace boost { namespace spirit { namespace x3
         }
         
         template <typename... Ts>
-        directive_caller<Derived, Ts...>
-        operator()(Ts&& ...ts) const
+        directive_caller<Derived, typename remove_reference<Ts>::type...>
+        operator()(Ts&&... ts) const
         {
             return {derived(), std::forward<Ts>(ts)...};
         }

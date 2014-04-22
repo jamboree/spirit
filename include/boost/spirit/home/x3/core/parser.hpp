@@ -63,7 +63,8 @@ namespace boost { namespace spirit { namespace x3
         }
         
         template <typename... Ts>
-        caller<Derived, Ts...> operator()(Ts&& ...ts) const
+        caller<Derived, typename remove_reference<Ts>::type...>
+        operator()(Ts&&... ts) const
         {
             return {this->derived(), std::forward<Ts>(ts)...};
         }

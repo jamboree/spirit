@@ -11,6 +11,7 @@
 #include <boost/detail/lightweight_test.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/actor.hpp>
+#include <boost/ref.hpp>
 #include <boost/phoenix/core.hpp>
 #include <boost/phoenix/operator.hpp>
 #include <boost/phoenix/object.hpp>
@@ -135,7 +136,7 @@ main()
         rule<class A, void(char&)> a; // 1 arg (reference)
         auto adef(a = alpha[_r1 = _1]);
 
-        BOOST_TEST(test("x", adef(ch))); // the arg is passed via universal-ref
+        BOOST_TEST(test("x", adef(boost::ref(ch))));
         BOOST_TEST(ch == 'x');
     }
 #if 0
