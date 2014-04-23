@@ -31,7 +31,7 @@ namespace boost { namespace spirit { namespace x3
 {
     struct attr_parser : parser<attr_parser>
     {
-        template <typename  T>
+        template <typename T>
         struct caller_traits
         {
             typedef typename remove_reference<T>::type attribute_type;

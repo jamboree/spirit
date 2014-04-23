@@ -59,7 +59,7 @@ namespace boost { namespace spirit { namespace x3
     template <typename Directive, typename... Ts>
     struct directive_caller
     {
-        typedef detail::transform_params<Directive, std::tuple<Ts...>> transform;
+        typedef detail::transform_params<Directive, void, Ts...> transform;
         static bool const is_pass_through_unary =
             detail::caller_is_pass_through_unary<Directive>::value;
         
@@ -102,12 +102,12 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             return invoke_parse(subject, first, last, context, attr,
-                detail::eval(std::get<Ns>(params), context)...);
+                detail::eval<Ts const&>(std::get<Ns>(params), context)...);
         }
         
         template <typename Subject, typename Iterator, typename Context
             , typename Attribute, typename... As>
-        typename detail::transform_params<Subject, std::tuple<As...>>::yes
+        typename detail::transform_params<Directive, void, As...>::yes
         invoke_parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, As&&... as) const
         {
@@ -117,7 +117,7 @@ namespace boost { namespace spirit { namespace x3
         
         template <typename Subject, typename Iterator, typename Context
             , typename Attribute, typename... As>
-        typename detail::transform_params<Subject, std::tuple<As...>>::no
+        typename detail::transform_params<Directive, void, As...>::no
         invoke_parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, As&&... as) const
         {

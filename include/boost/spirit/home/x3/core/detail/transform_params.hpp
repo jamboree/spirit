@@ -13,22 +13,58 @@
 
 #include <tuple>
 #include <boost/mpl/bool.hpp>
+#include <boost/utility/declval.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
+#include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
-    template <typename Subject, typename Tuple, typename = void>
+	template <typename T, std::size_t N>
+	struct array_wrapper
+	{
+	    typedef T const(&const_reference)[N];
+	    
+	    array_wrapper(T(&data)[N])
+	      : array_wrapper(data, make_index_sequence<N>())
+	    {}
+
+	    template<std::size_t... Ns>
+	    array_wrapper(T(&data)[N], index_sequence<Ns...>)
+	      : data{data[Ns]...}
+	    {}
+	    
+	    operator const_reference() const
+	    {
+	        return data; 
+	    }
+
+	    T data[N];
+	};
+	
+	template <typename T>
+	struct wrap_param
+	{
+		typedef T type;
+	};
+
+	template <typename T, std::size_t N>
+	struct wrap_param<T[N]>
+	{
+		typedef array_wrapper<T, N> type;
+	};
+
+    template <typename Subject, typename Enable, typename... Ts>
     struct transform_params
     {
-        typedef Tuple type;
+        typedef std::tuple<typename wrap_param<Ts>::type...> type;
         typedef mpl::false_ is_transformed;
         typedef bool no;
     };
     
     template <typename Subject, typename... Ts>
-    struct transform_params<Subject, std::tuple<Ts...>,
-        typename disable_if_substitution_failure<decltype(Subject::transform_params(declval<Ts&&>...))>::type>
+    struct transform_params<Subject, typename disable_if_substitution_failure<
+        decltype(Subject::transform_params(declval<Ts&&>...))>::type, Ts...>
     {
         struct type
         {
