@@ -42,18 +42,18 @@ namespace boost { namespace spirit { namespace x3
     struct is_callable<F(A...)>
       : detail::is_callable_impl<F(A...)>
     {};
-	
-	template <typename T>
-	struct remove_rvalue_reference
-	{
-	    typedef T type;
-	};
-	
-	template <typename T>
-	struct remove_rvalue_reference<T&&>
-	{
-	    typedef T type;
-	};
+    
+    template <typename T>
+    struct remove_rvalue_reference
+    {
+        typedef T type;
+    };
+    
+    template <typename T>
+    struct remove_rvalue_reference<T&&>
+    {
+        typedef T type;
+    };
 }}}
 
 

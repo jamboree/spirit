@@ -18,35 +18,35 @@
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
-	template <typename T, typename Context, typename = void>
-	struct eval_impl
-	{
-		static T&& apply(T&& val, Context const&)
-		{
-			return std::forward<T>(val);
-		}
-	};
+    template <typename T, typename Context, typename = void>
+    struct eval_impl
+    {
+        static T&& apply(T&& val, Context const&)
+        {
+            return std::forward<T>(val);
+        }
+    };
 
-	template <typename F, typename Context>
-	struct eval_impl<F, Context,
-		typename enable_if_c<!traits::is_parser<typename decay<F>::type>::value
+    template <typename F, typename Context>
+    struct eval_impl<F, Context,
+        typename enable_if_c<!traits::is_parser<typename decay<F>::type>::value
             && is_callable<F(Context const&)>::value, void>::type>
-	{
-		static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
-		{
-			return f(ctx);
-		}
-	};
-	
-	template <typename T, typename Context>
-	inline auto eval(T&& val, Context const& ctx)->
-		decltype(eval_impl<T, Context>::apply(std::forward<T>(val), ctx))
-	{
-		return eval_impl<T, Context>::apply(std::forward<T>(val), ctx);
-	}
-	
-	template <typename T, typename Context>
-	using result_of_eval =
+    {
+        static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
+        {
+            return f(ctx);
+        }
+    };
+    
+    template <typename T, typename Context>
+    inline auto eval(T&& val, Context const& ctx)->
+        decltype(eval_impl<T, Context>::apply(std::forward<T>(val), ctx))
+    {
+        return eval_impl<T, Context>::apply(std::forward<T>(val), ctx);
+    }
+    
+    template <typename T, typename Context>
+    using result_of_eval =
         typename remove_rvalue_reference<
             decltype(eval(declval<T>(), declval<Context>()))>::type;
 }}}}

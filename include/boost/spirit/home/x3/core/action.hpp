@@ -56,7 +56,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
 namespace boost { namespace spirit { namespace x3
 {
-    struct rule_context_tag;
     struct parse_pass_context_tag;
     
     template <typename Context>
@@ -155,12 +154,13 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            detail::action_category<
-                action_type
+            using tag = detail::action_category<
+                action_type const
               , x3::context<parse_pass_context_tag, bool, Context>
-              , typename traits::attribute_of<Subject, Context>::type> tag;
+              , typename traits::attribute_of<Subject, Context>::type>;
 
-            return parse_impl(tag, first, last, context, attr);
+            static_assert(tag::value != -1, "invalid action");
+            return parse_impl(tag(), first, last, context, attr);
         }
 
         action_type f;
