@@ -11,7 +11,8 @@
 #pragma once
 #endif
 
-#include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/type_traits/decay.hpp>
+#include <boost/spirit/home/x3/support/traits/is_parser.hpp>
 #include <boost/spirit/home/x3/support/utility/type_traits.hpp>
 
 
@@ -28,7 +29,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
 	template <typename F, typename Context>
 	struct eval_impl<F, Context,
-		typename enable_if_c<!is_parser<typename std::decay<F>::type>::value
+		typename enable_if_c<!traits::is_parser<typename decay<F>::type>::value
             && is_callable<F(Context const&)>::value, void>::type>
 	{
 		static auto apply(F&& f, Context const& ctx)->decltype(f(ctx))
