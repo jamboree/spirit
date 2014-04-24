@@ -40,6 +40,8 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, Parser const& p) const
         {
+            static_assert(traits::is_parser<Parser>::value,
+                "no parser defined for the literal");
             return p.parse(first, last, context, attr);
         }
     };
