@@ -41,7 +41,7 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef typename Encoding::char_type char_type;
 
-#define BOOST_SPIRIT_X3_CLASSIFY(name)                                             \
+#define BOOST_SPIRIT_X3_CLASSIFY(name)                                          \
         template <typename Char>                                                \
         static bool                                                             \
         is(name##_tag, Char ch)                                                 \
@@ -69,44 +69,39 @@ namespace boost { namespace spirit { namespace x3
 #undef BOOST_SPIRIT_X3_CLASSIFY
     };
 
-    template <typename Encoding, typename Tag>
+    template <typename Tag>
     struct char_class
-      : char_parser<char_class<Encoding, Tag>>
     {
-        typedef Encoding encoding;
-        typedef Tag tag;
-        typedef typename Encoding::char_type char_type;
-        typedef char_type attribute_type;
-        static bool const has_attribute = true;
-
-        template <typename Char, typename Context>
-        bool test(Char ch, Context const&) const
+        template <typename Encoding, typename Char, typename Context>
+        static bool test(Encoding, Char ch, Context const&)
         {
-            return ((sizeof(Char) <= sizeof(char_type)) || encoding::ischar(ch))
-                && char_class_base<Encoding>::is(tag(), ch);
+            typedef typename Encoding::char_type char_type;
+            return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch))
+                && char_class_base<Encoding>::is(Tag(), ch);
         }
     };
 
-#define BOOST_SPIRIT_X3_CHAR_CLASS(encoding, name)                                 \
-    typedef char_class<char_encoding::encoding, name##_tag> name##_type;        \
-    name##_type const name = name##_type();                                     \
+#define BOOST_SPIRIT_X3_CHAR_CLASS(encoding, name)                              \
+    typedef char_parser<char_encoding::encoding, char_class<name##_tag>>        \
+        name##_type;                                                            \
+    name##_type const name{};
     /***/
 
-#define BOOST_SPIRIT_X3_CHAR_CLASSES(encoding)                                     \
+#define BOOST_SPIRIT_X3_CHAR_CLASSES(encoding)                                  \
     namespace encoding                                                          \
     {                                                                           \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, alnum)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, alpha)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, digit)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, xdigit)                               \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, cntrl)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, graph)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, lower)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, print)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, punct)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, space)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, blank)                                \
-        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, upper)                                \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, alnum)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, alpha)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, digit)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, xdigit)                            \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, cntrl)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, graph)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, lower)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, print)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, punct)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, space)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, blank)                             \
+        BOOST_SPIRIT_X3_CHAR_CLASS(encoding, upper)                             \
     }                                                                           \
     /***/
 

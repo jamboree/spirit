@@ -20,17 +20,21 @@ namespace boost { namespace spirit { namespace x3
     ///////////////////////////////////////////////////////////////////////////
     // The base char_parser
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Derived>
-    struct char_parser : parser<Derived>
+    template <typename Encoding, typename Classifier>
+    struct char_parser : parser<char_parser<Encoding, Classifier>>
     {
-        template <typename Iterator, typename Context, typename Attribute>
+        typedef typename Encoding::char_type attribute_type;
+        static bool const has_attribute = true;
+        static bool const caller_is_pass_through_unary = true;
+        
+        template <typename Iterator, typename Context, typename Attribute, typename... T>
         bool parse(
             Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
+          , Context const& context, Attribute& attr, T&&... t) const
         {
             x3::skip_over(first, last, context);
 
-            if (first != last && this->derived().test(*first, context))
+            if (first != last && Classifier::test(Encoding(), *first, context, std::forward<T>(t)...))
             {
                 x3::traits::move_to(*first, attr);
                 ++first;
@@ -39,6 +43,39 @@ namespace boost { namespace spirit { namespace x3
             return false;
         }
     };
+    
+    template <typename Positive>
+    struct not_char
+    {
+        struct type
+        {
+            template <typename Encoding, typename Char, typename Context, typename... T>
+            static bool test(Encoding e, Char ch, Context const& ctx, T... t)
+            {
+                return !Positive::test(e, ch, ctx, t...);
+            }
+        };
+    };
+
+    template <typename Positive>
+    struct not_char<not_char<Positive>>
+    {
+        typedef Positive type;
+    };
+    
+    template <typename Encoding, typename Classifier>
+    inline char_parser<Encoding, typename not_char<Classifier>::type>
+    operator~(char_parser<Encoding, Classifier> const&)
+    {
+        return {};
+    }
+    
+    template <typename Encoding, typename Classifier, typename T>
+    inline caller<char_parser<Encoding, typename not_char<Classifier>::type>, T> 
+    operator~(caller<char_parser<Encoding, Classifier>, T> const& c)
+    {
+        return {{}, c.params};
+    }
 }}}
 
 #endif

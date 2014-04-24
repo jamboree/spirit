@@ -11,17 +11,35 @@
 #pragma once
 #endif
 
-#include <boost/spirit/home/x3/char/any_char.hpp>
+#include <boost/spirit/home/x3/core/literal.hpp>
+#include <boost/spirit/home/x3/char/char_parser.hpp>
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
+    struct any_char
+    {
+        template <typename Encoding, typename Char, typename Context>
+        static bool test(Encoding, Char ch, Context const&)
+        {
+            typedef typename Encoding::char_type char_type;
+            return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
+        }
+        
+        template <typename Encoding, typename Char, typename Context, typename Char_>
+        static bool test(Encoding e, Char ch, Context const& ctx, Char_ ch_)
+        {
+            typedef typename Encoding::char_type char_type;
+            return test(e, ch, ctx) && ch == char_type(ch_);
+        }
+    };
+    
     namespace standard
     {
-        typedef any_char<char_encoding::standard> char_type;
-        char_type const char_ = char_type();
+        typedef char_parser<char_encoding::standard, any_char> char_type;
+        char_type const char_{};
     }
 
     using standard::char_type;
@@ -29,59 +47,29 @@ namespace boost { namespace spirit { namespace x3
 
     namespace standard_wide
     {
-        typedef any_char<char_encoding::standard_wide> char_type;
-        char_type const char_ = char_type();
+        typedef char_parser<char_encoding::standard_wide, any_char> char_type;
+        char_type const char_{};
     }
 
     namespace ascii
     {
-        typedef any_char<char_encoding::ascii> char_type;
-        char_type const char_ = char_type();
+        typedef char_parser<char_encoding::ascii, any_char> char_type;
+        char_type const char_{};
     }
 
     namespace extension
     {
         template <>
-        struct as_parser<char>
+        struct literal_delegate<char>
         {
-            typedef literal_char<
-                char_encoding::standard, unused_type>
-            type;
-
-            typedef type value_type;
-
-            static type call(char ch)
-            {
-                return type(ch);
-            }
+            typedef standard::char_type type;
         };
-
+        
         template <>
-        struct as_parser<wchar_t>
+        struct literal_delegate<wchar_t>
         {
-            typedef literal_char<
-                char_encoding::standard_wide, unused_type>
-            type;
-
-            typedef type value_type;
-
-            static type call(wchar_t ch)
-            {
-                return type(ch);
-            }
+            typedef standard_wide::char_type type;
         };
-    }
-
-    inline literal_char<char_encoding::standard, unused_type>
-    lit(char ch)
-    {
-        return literal_char<char_encoding::standard, unused_type>(ch);
-    }
-
-    inline literal_char<char_encoding::standard_wide, unused_type>
-    lit(wchar_t ch)
-    {
-        return literal_char<char_encoding::standard_wide, unused_type>(ch);
     }
 }}}
 

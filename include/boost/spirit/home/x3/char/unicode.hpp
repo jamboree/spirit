@@ -196,12 +196,13 @@ namespace boost { namespace spirit { namespace x3
     struct unknown_tag {};
 
     ///////////////////////////////////////////////////////////////////////////
-    struct unicode_char_class_base
+    template <>
+    struct char_class_base<char_encoding::unicode>
     {
         typedef char_encoding::unicode encoding;
         typedef char_encoding::unicode::char_type char_type;
 
-#define BOOST_SPIRIT_X3_BASIC_CLASSIFY(name)                                       \
+#define BOOST_SPIRIT_X3_BASIC_CLASSIFY(name)                                    \
         template <typename Char>                                                \
         static bool                                                             \
         is(name##_tag, Char ch)                                                 \
@@ -212,7 +213,7 @@ namespace boost { namespace spirit { namespace x3
         }                                                                       \
         /***/
 
-#define BOOST_SPIRIT_X3_CLASSIFY(name)                                             \
+#define BOOST_SPIRIT_X3_CLASSIFY(name)                                          \
         template <typename Char>                                                \
         static bool                                                             \
         is(name##_tag, Char ch)                                                 \
@@ -405,33 +406,16 @@ namespace boost { namespace spirit { namespace x3
 #undef BOOST_SPIRIT_X3_CLASSIFY
     };
 
-    template <typename Tag>
-    struct unicode_char_class
-      : char_parser<unicode_char_class<Tag>>
-    {
-        typedef char_encoding::unicode encoding;
-        typedef Tag tag;
-        typedef typename encoding::char_type char_type;
-        typedef char_type attribute_type;
-        static bool const has_attribute = true;
-
-        template <typename Char, typename Context>
-        bool test(Char ch, Context const&) const
-        {
-            return ((sizeof(Char) <= sizeof(char_type)) || encoding::ischar(ch))
-                && unicode_char_class_base::is(tag(), ch);
-        }
-    };
-
-#define BOOST_SPIRIT_X3_CHAR_CLASS(name)                                           \
-    typedef unicode_char_class<name##_tag> name##_type;                         \
-    name##_type const name = name##_type();                                     \
+#define BOOST_SPIRIT_X3_CHAR_CLASS(name)                                        \
+    typedef char_parser<char_encoding::unicode, char_class<name##_tag>>         \
+        name##_type;                                                            \
+    name##_type const name{};
     /***/
 
     namespace unicode
     {
-        typedef any_char<char_encoding::unicode> char_type;
-        char_type const char_ = char_type();
+        typedef char_parser<char_encoding::unicode, any_char> char_type;
+        char_type const char_{};
 
     ///////////////////////////////////////////////////////////////////////////
     //  Unicode Major Categories
