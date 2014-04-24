@@ -48,12 +48,12 @@ namespace boost { namespace spirit { namespace x3
         
         template <typename Subject, typename Iterator, typename Context, typename Attribute, typename Skipper>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, Skipper const& skipper) const
+          , Context const& context, Attribute& attr, Skipper const& s) const
         {
-            auto&& s = as_parser(skipper);
+            auto const& skipper = as_parser(s);
             return subject.parse(
                 first, last
-              , make_context<skipper_tag>(s, context)
+              , make_context<skipper_tag>(skipper, context)
               , attr);
         }
     };
