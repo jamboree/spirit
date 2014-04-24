@@ -18,7 +18,7 @@
 namespace boost { namespace spirit { namespace x3 { namespace extension
 {
     template <typename T>
-    struct literal_delegate;
+    struct literal;
 }}}}
 
 namespace boost { namespace spirit { namespace x3
@@ -30,11 +30,10 @@ namespace boost { namespace spirit { namespace x3
         static bool const caller_is_pass_through_unary = true;
 
         template <typename T>
-        static caller<typename extension::literal_delegate<T>::type, T>
-        transform_params(T const& val)
+        static caller<typename extension::literal<unrefcv<T>>::type, unrefcv<T>>
+        transform_params(T&& val)
         {
-            typename extension::literal_delegate<T>::type p;
-            return {p, val};
+            return {{}, std::forward<T>(val)};
         }
 
         template <typename Iterator, typename Context, typename Attribute, typename Parser>
@@ -52,7 +51,7 @@ namespace boost { namespace spirit { namespace x3 { namespace extension
 {
     template <typename T>
     struct as_parser<T, typename disable_if_substitution_failure<
-        typename literal_delegate<T>::type>::type>
+        typename literal<T>::type>::type>
     {
         typedef
             caller<lit_parser, T>

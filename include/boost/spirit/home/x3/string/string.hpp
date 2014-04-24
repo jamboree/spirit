@@ -52,23 +52,16 @@ namespace boost { namespace spirit { namespace x3
     namespace extension
     {
         template <int N>
-        struct literal_delegate<char[N]>
+        struct literal<char[N]>
         {
             typedef string_parser<char_encoding::standard> type;
         };
 
         template <int N>
-        struct literal_delegate<char const[N]> : literal_delegate<char[N]> {};
-
-        template <int N>
-        struct literal_delegate<wchar_t[N]>
+        struct literal<wchar_t[N]>
         {
             typedef string_parser<char_encoding::standard_wide> type;
         };
-
-        template <int N>
-        struct literal_delegate<wchar_t const[N]>
-          : literal_delegate<wchar_t[N]> {};
     }
 
     using standard::string_type;

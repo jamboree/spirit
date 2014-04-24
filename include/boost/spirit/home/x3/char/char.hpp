@@ -60,13 +60,13 @@ namespace boost { namespace spirit { namespace x3
     namespace extension
     {
         template <>
-        struct literal_delegate<char>
+        struct literal<char>
         {
             typedef standard::char_type type;
         };
         
         template <>
-        struct literal_delegate<wchar_t>
+        struct literal<wchar_t>
         {
             typedef standard_wide::char_type type;
         };
