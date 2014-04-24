@@ -21,19 +21,36 @@ namespace boost { namespace spirit { namespace x3
 {
     struct any_char
     {
-        template <typename Encoding, typename Char, typename Context>
-        static bool test(Encoding, Char ch, Context const&)
+        template <typename Encoding>
+        struct test
         {
             typedef typename Encoding::char_type char_type;
-            return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
-        }
-        
-        template <typename Encoding, typename Char, typename Context, typename Char_>
-        static bool test(Encoding e, Char ch, Context const& ctx, Char_ ch_)
-        {
-            typedef typename Encoding::char_type char_type;
-            return test(e, ch, ctx) && ch == char_type(ch_);
-        }
+            typedef std::pair<char_type, char_type> range;
+            
+            template <typename Char, typename Context>
+            static bool check(Char ch, Context const&)
+            {
+                return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
+            }
+            
+            template <typename Char, typename Context, typename Char_>
+            static bool check(Char ch, Context const& ctx, Char_ ch_)
+            {
+                return check(ch, ctx) && ch == char_type(ch_);
+            }
+            
+            template <typename Char>
+            static range transform_params(Char a, Char b)
+            {
+                return {char_type(a), char_type(b)};
+            }
+            
+            template <typename Char, typename Context>
+            static bool check(Char ch, Context const& ctx, range const& r)
+            {
+                return check(ch, ctx) && !(ch < r.first) && !(r.second < ch);
+            }
+        };
     };
     
     namespace standard

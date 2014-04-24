@@ -29,24 +29,24 @@ main()
         BOOST_TEST(test("x", char_));
         BOOST_TEST(test("x", char_('x')));
         BOOST_TEST(!test("x", char_('y')));
-        //~ BOOST_TEST(test("x", char_('a', 'z')));
-        //~ BOOST_TEST(!test("x", char_('0', '9')));
+        BOOST_TEST(test("x", char_('a', 'z')));
+        BOOST_TEST(!test("x", char_('0', '9')));
 
         BOOST_TEST(!test("x", ~char_));
         BOOST_TEST(!test("x", ~char_('x')));
         BOOST_TEST(test(" ", ~char_('x')));
         BOOST_TEST(test("X", ~char_('x')));
-        //~ BOOST_TEST(!test("x", ~char_('b', 'y')));
-        //~ BOOST_TEST(test("a", ~char_('b', 'y')));
-        //~ BOOST_TEST(test("z", ~char_('b', 'y')));
+        BOOST_TEST(!test("x", ~char_('b', 'y')));
+        BOOST_TEST(test("a", ~char_('b', 'y')));
+        BOOST_TEST(test("z", ~char_('b', 'y')));
 
         BOOST_TEST(test("x", ~~char_));
         BOOST_TEST(test("x", ~~char_('x')));
         BOOST_TEST(!test(" ", ~~char_('x')));
         BOOST_TEST(!test("X", ~~char_('x')));
-        //~ BOOST_TEST(test("x", ~~char_('b', 'y')));
-        //~ BOOST_TEST(!test("a", ~~char_('b', 'y')));
-        //~ BOOST_TEST(!test("z", ~~char_('b', 'y')));
+        BOOST_TEST(test("x", ~~char_('b', 'y')));
+        BOOST_TEST(!test("a", ~~char_('b', 'y')));
+        BOOST_TEST(!test("z", ~~char_('b', 'y')));
     }
 
     {

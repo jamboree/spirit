@@ -66,16 +66,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     struct transform_params<Subject, typename disable_if_substitution_failure<
         decltype(Subject::transform_params(declval<Ts>()...))>::type, Ts...>
     {
-        struct type
-        {
-            template <typename... As>
-            type(As&& ...as)
-              : data(Subject::transform_params(std::forward<As>(as)...))
-            {}
-
-            decltype(Subject::transform_params(declval<Ts>()...)) data;
-        };
-
+        typedef decltype(Subject::transform_params(declval<Ts>()...)) type;
         typedef mpl::true_ is_transformed;
         typedef bool yes;
     };

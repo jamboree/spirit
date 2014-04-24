@@ -20,21 +20,29 @@ namespace boost { namespace spirit { namespace x3
     ///////////////////////////////////////////////////////////////////////////
     // The base char_parser
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Encoding, typename Classifier>
-    struct char_parser : parser<char_parser<Encoding, Classifier>>
+    template <typename Encoding, typename Class>
+    struct char_parser : parser<char_parser<Encoding, Class>>
     {
+        typedef typename Class::template test<Encoding> test;
         typedef typename Encoding::char_type attribute_type;
         static bool const has_attribute = true;
         static bool const caller_is_pass_through_unary = true;
         
-        template <typename Iterator, typename Context, typename Attribute, typename... T>
+        template <typename Test = test, typename... Ts>
+        static auto transform_params(Ts&&... ts)->
+            decltype(Test::transform_params(std::forward<Ts>(ts)...))
+        {
+            return Test::transform_params(std::forward<Ts>(ts)...);
+        }
+        
+        template <typename Iterator, typename Context, typename Attribute, typename... Ts>
         bool parse(
             Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, T&&... t) const
+          , Context const& context, Attribute& attr, Ts&&... ts) const
         {
             x3::skip_over(first, last, context);
 
-            if (first != last && Classifier::test(Encoding(), *first, context, std::forward<T>(t)...))
+            if (first != last && test::check(*first, context, std::forward<Ts>(ts)...))
             {
                 x3::traits::move_to(*first, attr);
                 ++first;
@@ -49,11 +57,17 @@ namespace boost { namespace spirit { namespace x3
     {
         struct type
         {
-            template <typename Encoding, typename Char, typename Context, typename... T>
-            static bool test(Encoding e, Char ch, Context const& ctx, T... t)
+            template <typename Encoding>
+            struct test : Positive::template test<Encoding>
             {
-                return !Positive::test(e, ch, ctx, t...);
-            }
+                typedef typename Positive::template test<Encoding> pos;
+                
+                template <typename Char, typename Context, typename... Ts>
+                static bool check(Char ch, Context const& ctx, Ts&&... ts)
+                {
+                    return !pos::check(ch, ctx, std::forward<Ts>(ts)...);
+                }
+            };
         };
     };
 
@@ -63,18 +77,18 @@ namespace boost { namespace spirit { namespace x3
         typedef Positive type;
     };
     
-    template <typename Encoding, typename Classifier>
-    inline char_parser<Encoding, typename not_char<Classifier>::type>
-    operator~(char_parser<Encoding, Classifier> const&)
+    template <typename Encoding, typename Class>
+    inline char_parser<Encoding, typename not_char<Class>::type>
+    operator~(char_parser<Encoding, Class> const&)
     {
         return {};
     }
     
-    template <typename Encoding, typename Classifier, typename T>
-    inline caller<char_parser<Encoding, typename not_char<Classifier>::type>, T> 
-    operator~(caller<char_parser<Encoding, Classifier>, T> const& c)
+    template <typename Encoding, typename Class, typename... Ts>
+    inline caller<char_parser<Encoding, typename not_char<Class>::type>, Ts...> 
+    operator~(caller<char_parser<Encoding, Class>, Ts...> const& c)
     {
-        return {{}, c.params};
+        return {mpl::false_(), {}, c.params};
     }
 }}}
 

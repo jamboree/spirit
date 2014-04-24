@@ -72,13 +72,18 @@ namespace boost { namespace spirit { namespace x3
     template <typename Tag>
     struct char_class
     {
-        template <typename Encoding, typename Char, typename Context>
-        static bool test(Encoding, Char ch, Context const&)
+        template <typename Encoding>
+        struct test
         {
             typedef typename Encoding::char_type char_type;
-            return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch))
-                && char_class_base<Encoding>::is(Tag(), ch);
-        }
+            
+            template <typename Char, typename Context>
+            static bool check(Char ch, Context const&)
+            {
+                return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch))
+                    && char_class_base<Encoding>::is(Tag(), ch);
+            }
+        };
     };
 
 #define BOOST_SPIRIT_X3_CHAR_CLASS(encoding, name)                              \
