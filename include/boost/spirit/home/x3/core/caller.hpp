@@ -27,14 +27,14 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unary_parser<Subject, caller<Subject, Ts...>> base_type;
         typedef detail::transform_params<Subject, void, Ts...> transform;
-        typedef typename transform::is_transformed is_transformed;
+        typedef typename transform::tag transform_tag;
         static bool const is_pass_through_unary =
             Subject::caller_is_pass_through_unary;
         static bool const handles_container = Subject::handles_container;
 
         template <typename... As>
         caller(Subject const& subject, As&&... as)
-          : caller(is_transformed(), subject, std::forward<As>(as)...) {}
+          : caller(transform_tag(), subject, std::forward<As>(as)...) {}
           
         template <typename... As>
         caller(mpl::true_, Subject const& subject, As&&... as)
@@ -50,7 +50,7 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            is_transformed tag;
+            transform_tag tag;
             make_index_sequence<sizeof...(Ts)> indices;
             return parse_impl(tag, indices, first, last, context, attr);
         }

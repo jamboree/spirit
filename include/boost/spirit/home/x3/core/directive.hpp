@@ -60,13 +60,13 @@ namespace boost { namespace spirit { namespace x3
     struct directive_caller
     {
         typedef detail::transform_params<Directive, void, Ts...> transform;
-        typedef typename transform::is_transformed is_transformed;
+        typedef typename transform::tag transform_tag;
         static bool const is_pass_through_unary =
             detail::caller_is_pass_through_unary<Directive>::value;
         
         template <typename... As>
         directive_caller(Directive const& directive, As&&... as)
-          : directive_caller(is_transformed(),
+          : directive_caller(transform_tag(),
                 directive, std::forward<As>(as)...)
         {}
           
@@ -91,7 +91,7 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            is_transformed tag;
+            transform_tag tag;
             make_index_sequence<sizeof...(Ts)> indices;
             return parse_impl(tag, indices, subject, first, last, context, attr);
         }

@@ -58,7 +58,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     struct transform_params
     {
         typedef std::tuple<typename wrap_param<Ts>::type...> type;
-        typedef mpl::false_ is_transformed;
+        typedef mpl::false_ tag;
         typedef bool no;
     };
     
@@ -67,7 +67,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         decltype(Subject::transform_params(declval<Ts>()...))>::type, Ts...>
     {
         typedef decltype(Subject::transform_params(declval<Ts>()...)) type;
-        typedef mpl::true_ is_transformed;
+        typedef mpl::true_ tag;
         typedef bool yes;
     };
 }}}}
