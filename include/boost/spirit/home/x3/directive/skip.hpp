@@ -50,9 +50,10 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, Skipper const& skipper) const
         {
+            auto&& s = as_parser(skipper);
             return subject.parse(
                 first, last
-              , make_context<skipper_tag>(skipper, context)
+              , make_context<skipper_tag>(s, context)
               , attr);
         }
     };

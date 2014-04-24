@@ -41,6 +41,25 @@ namespace boost { namespace spirit { namespace x3
             x3::skip_over(first, last, context);
             return detail::string_parse(str, first, last, attr);
         }
+        
+        // skipper delimited
+        template <typename Iterator, typename Context, typename Attribute_>
+        bool parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute_& attr) const
+        {
+            x3::skip_over(first, last, context);
+            auto const& skipper = get<skipper_tag>(context);
+            Iterator it(first);
+            for ( ; it != last; ++it)
+            {
+                Iterator i(it);
+                if (skipper.parse(i, last, unused, unused))
+                    break;
+            }
+            traits::move_to(first, it, attr);
+            first = it;
+            return true;
+        }
     };
 
     namespace standard
