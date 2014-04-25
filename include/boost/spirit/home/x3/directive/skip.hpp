@@ -30,7 +30,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             auto const& skipper =
-                detail::get_unused_skipper(get<skipper_tag>(context));
+                detail::get_unused_skipper(x3::get<skipper_tag>(context));
 
             return subject.parse(
                 first, last
