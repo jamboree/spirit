@@ -407,14 +407,14 @@ namespace boost { namespace spirit { namespace x3
     };
 
 #define BOOST_SPIRIT_X3_CHAR_CLASS(name)                                        \
-    typedef char_parser<char_encoding::unicode, char_class<name##_tag>>         \
+    typedef char_parser<char_class<char_encoding::unicode, name##_tag>>         \
         name##_type;                                                            \
     name##_type const name{};
     /***/
 
     namespace unicode
     {
-        typedef char_parser<char_encoding::unicode, any_char> char_type;
+        typedef char_parser<any_char<char_encoding::unicode>> char_type;
         char_type const char_{};
 
     ///////////////////////////////////////////////////////////////////////////

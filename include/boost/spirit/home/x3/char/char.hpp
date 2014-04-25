@@ -19,43 +19,40 @@
 
 namespace boost { namespace spirit { namespace x3
 {
+    template <typename Encoding>
     struct any_char
     {
-        template <typename Encoding>
-        struct test
+        typedef typename Encoding::char_type char_type;
+        typedef std::pair<char_type, char_type> range;
+        
+        template <typename Char, typename Context>
+        static bool test(Char ch, Context const&)
         {
-            typedef typename Encoding::char_type char_type;
-            typedef std::pair<char_type, char_type> range;
-            
-            template <typename Char, typename Context>
-            static bool check(Char ch, Context const&)
-            {
-                return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
-            }
-            
-            template <typename Char, typename Context, typename Char_>
-            static bool check(Char ch, Context const& ctx, Char_ ch_)
-            {
-                return check(ch, ctx) && ch == char_type(ch_);
-            }
-            
-            template <typename Char>
-            static range transform_params(Char a, Char b)
-            {
-                return {char_type(a), char_type(b)};
-            }
-            
-            template <typename Char, typename Context>
-            static bool check(Char ch, Context const& ctx, range const& r)
-            {
-                return check(ch, ctx) && !(ch < r.first) && !(r.second < ch);
-            }
-        };
+            return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
+        }
+        
+        template <typename Char, typename Context, typename Char_>
+        static bool test(Char ch, Context const& ctx, Char_ ch_)
+        {
+            return test(ch, ctx) && ch == char_type(ch_);
+        }
+        
+        template <typename Char>
+        static range transform_params(Char a, Char b)
+        {
+            return {char_type(a), char_type(b)};
+        }
+        
+        template <typename Char, typename Context>
+        static bool test(Char ch, Context const& ctx, range const& r)
+        {
+            return test(ch, ctx) && !(ch < r.first) && !(r.second < ch);
+        }
     };
     
     namespace standard
     {
-        typedef char_parser<char_encoding::standard, any_char> char_type;
+        typedef char_parser<any_char<char_encoding::standard>> char_type;
         char_type const char_{};
     }
 
@@ -64,13 +61,13 @@ namespace boost { namespace spirit { namespace x3
 
     namespace standard_wide
     {
-        typedef char_parser<char_encoding::standard_wide, any_char> char_type;
+        typedef char_parser<any_char<char_encoding::standard_wide>> char_type;
         char_type const char_{};
     }
 
     namespace ascii
     {
-        typedef char_parser<char_encoding::ascii, any_char> char_type;
+        typedef char_parser<any_char<char_encoding::ascii>> char_type;
         char_type const char_{};
     }
 

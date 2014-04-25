@@ -58,8 +58,8 @@ main()
         BOOST_TEST(test("   x", char_, space));
         BOOST_TEST(test("   x", char_('x'), space));
         BOOST_TEST(!test("   x", char_('y'), space));
-        //~ BOOST_TEST(test("   x", char_('a', 'z'), space));
-        //~ BOOST_TEST(!test("   x", char_('0', '9'), space));
+        BOOST_TEST(test("   x", char_('a', 'z'), space));
+        BOOST_TEST(!test("   x", char_('0', '9'), space));
     }
 
     {
@@ -68,24 +68,24 @@ main()
         BOOST_TEST(test(L"x", char_));
         BOOST_TEST(test(L"x", char_(L'x')));
         BOOST_TEST(!test(L"x", char_(L'y')));
-        //~ BOOST_TEST(test(L"x", char_(L'a', L'z')));
-        //~ BOOST_TEST(!test(L"x", char_(L'0', L'9')));
+        BOOST_TEST(test(L"x", char_(L'a', L'z')));
+        BOOST_TEST(!test(L"x", char_(L'0', L'9')));
 
         BOOST_TEST(!test(L"x", ~char_));
         BOOST_TEST(!test(L"x", ~char_(L'x')));
         BOOST_TEST(test(L" ", ~char_(L'x')));
         BOOST_TEST(test(L"X", ~char_(L'x')));
-        //~ BOOST_TEST(!test(L"x", ~char_(L'b', L'y')));
-        //~ BOOST_TEST(test(L"a", ~char_(L'b', L'y')));
-        //~ BOOST_TEST(test(L"z", ~char_(L'b', L'y')));
+        BOOST_TEST(!test(L"x", ~char_(L'b', L'y')));
+        BOOST_TEST(test(L"a", ~char_(L'b', L'y')));
+        BOOST_TEST(test(L"z", ~char_(L'b', L'y')));
 
         BOOST_TEST(test(L"x", ~~char_));
         BOOST_TEST(test(L"x", ~~char_(L'x')));
         BOOST_TEST(!test(L" ", ~~char_(L'x')));
         BOOST_TEST(!test(L"X", ~~char_(L'x')));
-        //~ BOOST_TEST(test(L"x", ~~char_(L'b', L'y')));
-        //~ BOOST_TEST(!test(L"a", ~~char_(L'b', L'y')));
-        //~ BOOST_TEST(!test(L"z", ~~char_(L'b', L'y')));
+        BOOST_TEST(test(L"x", ~~char_(L'b', L'y')));
+        BOOST_TEST(!test(L"a", ~~char_(L'b', L'y')));
+        BOOST_TEST(!test(L"z", ~~char_(L'b', L'y')));
     }
 
 
