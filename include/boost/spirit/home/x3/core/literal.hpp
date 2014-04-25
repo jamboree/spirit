@@ -17,7 +17,7 @@
 
 namespace boost { namespace spirit { namespace x3 { namespace extension
 {
-    template <typename T>
+    template <typename T, typename Enable = void>
     struct literal;
 }}}}
 

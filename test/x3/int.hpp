@@ -11,7 +11,7 @@
 
 #include <climits>
 #include <boost/detail/lightweight_test.hpp>
-#include <boost/spirit/home/x3/numeric/int.hpp>
+#include <boost/spirit/home/x3.hpp>
 #include "test.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////

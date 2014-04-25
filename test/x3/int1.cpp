@@ -137,24 +137,23 @@ main()
         BOOST_TEST(test("-1234567890123456789", any_int));
     }
 
-    // $$$ Not yet implemented $$$
-    //~ ///////////////////////////////////////////////////////////////////////////
-    //~ //  action tests
-    //~ ///////////////////////////////////////////////////////////////////////////
-    //~ {
-        //~ using boost::phoenix::ref;
-        //~ using boost::spirit::x3::_1;
-        //~ using boost::spirit::x3::ascii::space;
-        //~ using boost::spirit::x3::int_;
-        //~ int n, m;
+    ///////////////////////////////////////////////////////////////////////////
+    //  action tests
+    ///////////////////////////////////////////////////////////////////////////
+    {
+        using boost::spirit::x3::ascii::space;
+        using boost::spirit::x3::int_;
+        using boost::spirit::x3::unused_type;
+        int n, m;
+        auto assign_n = [&n](unused_type, int i) { n = i; };
 
-        //~ BOOST_TEST(test("123", int_[ref(n) = _1]));
-        //~ BOOST_TEST(n == 123);
-        //~ BOOST_TEST(test_attr("789", int_[ref(n) = _1], m));
-        //~ BOOST_TEST(n == 789 && m == 789);
-        //~ BOOST_TEST(test("   456", int_[ref(n) = _1], space));
-        //~ BOOST_TEST(n == 456);
-    //~ }
+        BOOST_TEST(test("123", int_[assign_n]));
+        BOOST_TEST(n == 123);
+        BOOST_TEST(test_attr("789", int_[assign_n], m));
+        BOOST_TEST(n == 789 && m == 789);
+        BOOST_TEST(test("   456", int_[assign_n], space));
+        BOOST_TEST(n == 456);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     //  custom int tests

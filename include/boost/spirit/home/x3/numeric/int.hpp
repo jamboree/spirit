@@ -12,8 +12,11 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/literal.hpp>
 #include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
+#include <boost/spirit/home/x3/support/traits/move_to.hpp>
+#include <boost/type_traits/is_signed.hpp>
 #include <cstdint>
 
 namespace boost { namespace spirit { namespace x3
@@ -33,20 +36,46 @@ namespace boost { namespace spirit { namespace x3
 
         typedef T attribute_type;
         static bool const has_attribute = true;
+        static bool const caller_is_pass_through_unary = true;
+        typedef extract_int<T, Radix, MinDigits, MaxDigits> extract;
 
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            typedef extract_int<T, Radix, MinDigits, MaxDigits> extract;
             x3::skip_over(first, last, context);
             return extract::call(first, last, attr);
         }
+        
+        template <typename Iterator, typename Context, typename Attribute>
+        bool parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, T val) const
+        {
+            x3::skip_over(first, last, context);
+            Iterator it(first);
+            T attr_;
+            if (extract::call(it, last, attr_) && attr_ == val)
+            {
+                x3::traits::move_to(attr_, attr);
+                first = it;
+                return true;
+            }
+            return false;
+        }
     };
+    
+    namespace extension
+    {
+        template <typename T>
+        struct literal<T, typename enable_if<is_signed<T>>::type>
+        {
+            typedef int_parser<T> type;
+        };
+    }
 
-#define BOOST_SPIRIT_X3_INT_PARSER(int_type, name)                                 \
+#define BOOST_SPIRIT_X3_INT_PARSER(int_type, name)                              \
     typedef int_parser<int_type> name##type;                                    \
-    name##type const name = name##type();                                       \
+    name##type const name{};                                                    \
     /***/
 
     BOOST_SPIRIT_X3_INT_PARSER(long, long_)

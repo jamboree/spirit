@@ -126,22 +126,21 @@ main()
         BOOST_TEST(test_attr("014567", uint4, u, false) && u == 145);
     }
 
-    // $$$ Not yet implemented $$$
-    //~ ///////////////////////////////////////////////////////////////////////////
-    //~ //  action tests
-    //~ ///////////////////////////////////////////////////////////////////////////
-    //~ {
-        //~ using boost::phoenix::ref;
-        //~ using boost::spirit::x3::_1;
-        //~ using boost::spirit::x3::uint_;
-        //~ using boost::spirit::x3::ascii::space;
-        //~ int n;
+    ///////////////////////////////////////////////////////////////////////////
+    //  action tests
+    ///////////////////////////////////////////////////////////////////////////
+    {
+        using boost::spirit::x3::uint_;
+        using boost::spirit::x3::ascii::space;
+        using boost::spirit::x3::unused_type;
+        unsigned u;
+        auto assign_u = [&u](unused_type, unsigned i) { u = i; };
 
-        //~ BOOST_TEST(test("123", uint_[ref(n) = _1]));
-        //~ BOOST_TEST(n == 123);
-        //~ BOOST_TEST(test("   456", uint_[ref(n) = _1], space));
-        //~ BOOST_TEST(n == 456);
-    //~ }
+        BOOST_TEST(test("123", uint_[assign_u]));
+        BOOST_TEST(u == 123);
+        BOOST_TEST(test("   456", uint_[assign_u], space));
+        BOOST_TEST(u == 456);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Check overflow is parse error

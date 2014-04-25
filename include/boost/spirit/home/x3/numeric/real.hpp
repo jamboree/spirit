@@ -12,9 +12,11 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/literal.hpp>
 #include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/numeric/real_policies.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -52,14 +54,40 @@ namespace boost { namespace spirit { namespace x3
             return false;
         }
         
+        template <typename Iterator, typename Context, typename Attribute>
+        bool parse(Iterator& first, Iterator const& last
+          , Context& context, Attribute& attr, T val) const
+        {
+            x3::skip_over(first, last, context);
+            Iterator it(first);
+            T attr_;
+            if (extract_real<T, RealPolicies>::parse(it, last, attr_, policies)
+                && attr_ == val)
+            {
+                x3::traits::move_to(attr_, attr);
+                first = it;
+                return true;
+            }
+            return false;
+        }
+        
         RealPolicies policies;
     };
-
+    
+    namespace extension
+    {
+        template <typename T>
+        struct literal<T, typename enable_if<is_floating_point<T>>::type>
+        {
+            typedef real_parser<T> type;
+        };
+    }
+    
     typedef real_parser<float> float_type;                                    
-    float_type const float_ = float_type();    
+    float_type const float_{};    
                                        
     typedef real_parser<double> double_type;                                    
-    double_type const double_ = double_type();                                       
+    double_type const double_{};                                       
 
 }}}
 
