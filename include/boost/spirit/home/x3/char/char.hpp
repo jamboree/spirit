@@ -20,16 +20,28 @@
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
+#include <boost/array.hpp>
 
 
 namespace boost { namespace spirit { namespace x3
 {
+    namespace detail
+    {
+        template <typename T>
+        struct is_multi_string : traits::is_string<T> {};
+        
+        template <typename T, std::size_t N>
+        struct is_multi_string<T[N]>
+          : mpl::bool_<traits::is_char<T>::value && (N > 2)> {};
+    }
+    
     template <typename Encoding>
     struct any_char
     {
         typedef typename Encoding::char_type char_type;
         typedef std::pair<char_type, char_type> char_range;
         typedef detail::char_set<char_type> char_set;
+        typedef array<char_type, 2> small_set;
         
         // char_
         template <typename Char, typename Context>
@@ -45,11 +57,25 @@ namespace boost { namespace spirit { namespace x3
             return char_type(ch);
         }
 
-        // char_('a') or char_("a")
+        // char_('a')
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_type ch_)
         {
             return test(ch, ctx) && char_type(ch) == ch_;
+        }
+        
+        template <typename Char>
+        static small_set transform_params(Char(&s)[2])
+        {
+            return {char_type(s[0]), char_type(s[1])};
+        }
+        
+        // char_("a")
+        template <typename Char, typename Context>
+        static bool test(Char ch, Context const& ctx, small_set const& s)
+        {
+            char_type ch_ = char_type(ch);
+            return test(ch, ctx) && (s[0] == ch_ || s[1] == ch_);
         }
 
         template <typename Char>
@@ -65,72 +91,50 @@ namespace boost { namespace spirit { namespace x3
             char_type ch_ = char_type(ch);
             return test(ch, ctx) && !(ch_ < r.first) && !(r.second < ch_);
         }
-        
-        template <typename String>
-        struct transform_string
-        {
-            typedef char_set type;
-            
-            static char_set apply(String const& str)
-            {
-                using detail::cast_char;
-                
-                typedef typename
-                    remove_const<
-                        typename traits::char_type_of<String>::type
-                    >::type
-                in_type;
-                
-                static_assert(sizeof(char_type) >= sizeof(in_type),
-                    "cannot convert string");
-                    
-                char_set chset;
-                auto definition = traits::get_c_string(str);
-                in_type ch = *definition++;
-                while (ch)
-                {
-                    in_type next = *definition++;
-                    if (next == '-')
-                    {
-                        next = *definition++;
-                        if (next == 0)
-                        {
-                            chset.add(cast_char<char_type>(ch));
-                            chset.add('-');
-                            break;
-                        }
-                        chset.add(
-                            cast_char<char_type>(ch),
-                            cast_char<char_type>(next)
-                        );
-                    }
-                    else
-                    {
-                        chset.add(cast_char<char_type>(ch));
-                    }
-                    ch = next;
-                }
-                return std::move(chset);
-            }
-        };
-        
-        template <typename Char>
-        struct transform_string<Char(&)[2]>
-        {
-            typedef char_type type;
-            
-            static char_type apply(Char(&ch)[2])
-            {
-                return char_type(ch[0]);
-            }
-        };
 
         template <typename String>
-        static typename lazy_enable_if<traits::is_string<String>,
-            transform_string<String>>::type
+        static typename
+            enable_if<detail::is_multi_string<String>, char_set>::type
         transform_params(String const& str)
         {
-            return transform_string<String>::apply(str);
+            using detail::cast_char;
+            
+            typedef typename
+                remove_const<
+                    typename traits::char_type_of<String>::type
+                >::type
+            in_type;
+            
+            static_assert(sizeof(char_type) >= sizeof(in_type),
+                "cannot convert string");
+                
+            char_set chset;
+            auto definition = traits::get_c_string(str);
+            in_type ch = *definition++;
+            while (ch)
+            {
+                in_type next = *definition++;
+                if (next == '-')
+                {
+                    next = *definition++;
+                    if (next == 0)
+                    {
+                        chset.add(cast_char<char_type>(ch));
+                        chset.add('-');
+                        break;
+                    }
+                    chset.add(
+                        cast_char<char_type>(ch),
+                        cast_char<char_type>(next)
+                    );
+                }
+                else
+                {
+                    chset.add(cast_char<char_type>(ch));
+                }
+                ch = next;
+            }
+            return std::move(chset);
         }
 
         // char_("a-z")
