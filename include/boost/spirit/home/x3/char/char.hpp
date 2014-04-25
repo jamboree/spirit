@@ -20,7 +20,6 @@
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
-#include <boost/array.hpp>
 
 
 namespace boost { namespace spirit { namespace x3
@@ -41,7 +40,6 @@ namespace boost { namespace spirit { namespace x3
         typedef typename Encoding::char_type char_type;
         typedef std::pair<char_type, char_type> char_range;
         typedef detail::char_set<char_type> char_set;
-        typedef array<char_type, 2> small_set;
         
         // char_
         template <typename Char, typename Context>
@@ -50,6 +48,7 @@ namespace boost { namespace spirit { namespace x3
             return ((sizeof(Char) <= sizeof(char_type)) || Encoding::ischar(ch));
         }
 
+        // char_('a')
         template <typename Char>
         static typename enable_if<traits::is_char<Char>, char_type>::type
         transform_params(Char ch)
@@ -57,34 +56,27 @@ namespace boost { namespace spirit { namespace x3
             return char_type(ch);
         }
 
-        // char_('a')
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_type ch_)
         {
             return test(ch, ctx) && char_type(ch) == ch_;
         }
         
-        template <typename Char>
-        static small_set transform_params(Char(&s)[2])
-        {
-            return {char_type(s[0]), char_type(s[1])};
-        }
-        
         // char_("a")
-        template <typename Char, typename Context>
-        static bool test(Char ch, Context const& ctx, small_set const& s)
+        template <typename Char>
+        static char_type transform_params(Char(&ch)[2])
         {
-            char_type ch_ = char_type(ch);
-            return test(ch, ctx) && (s[0] == ch_ || s[1] == ch_);
+            return char_type(ch[0]);
         }
 
+        // char_('a', 'z')
         template <typename Char>
-        static char_range transform_params(Char a, Char b)
+        static typename enable_if<traits::is_char<Char>, char_range>::type
+        transform_params(Char a, Char b)
         {
             return {char_type(a), char_type(b)};
         }
-        
-        // char_('a', 'z')
+
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_range const& r)
         {
@@ -92,6 +84,7 @@ namespace boost { namespace spirit { namespace x3
             return test(ch, ctx) && !(ch_ < r.first) && !(r.second < ch_);
         }
 
+        // char_("a-z")
         template <typename String>
         static typename
             enable_if<detail::is_multi_string<String>, char_set>::type
@@ -137,7 +130,6 @@ namespace boost { namespace spirit { namespace x3
             return std::move(chset);
         }
 
-        // char_("a-z")
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_set const& chset)
         {

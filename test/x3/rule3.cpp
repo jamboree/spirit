@@ -72,11 +72,6 @@ main()
     //~ using boost::spirit::x3::debug;
     using boost::spirit::x3::lit;
     using boost::spirit::x3::_val;
-    //~ using boost::spirit::x3::_val;
-    //~ using boost::spirit::x3::_1;
-    //~ using boost::spirit::x3::_r1;
-    //~ using boost::spirit::x3::_r2;
-    //~ using boost::spirit::x3::_a;
 
     namespace phx = boost::phoenix;
 
@@ -93,22 +88,22 @@ main()
         BOOST_TEST(s == "abcdef");
     }
 
-    { // synth attribute value-init
+//    { // synth attribute value-init
 
-        std::string s;
-        typedef rule<class r, std::string> rule_type;
-       
-        auto rdef = rule_type() =
-            alpha /
-               [](auto& r, char c)
-               {
-                  _val(r) += c;
-               }
-            ;
+//        std::string s;
+//        typedef rule<class r, std::string> rule_type;
+//       
+//        auto rdef = rule_type() =
+//            alpha /
+//               [](auto& r, char c)
+//               {
+//                  _val(r) += c;
+//               }
+//            ;
 
-        BOOST_TEST(test_attr("abcdef", +rdef, s));
-        BOOST_TEST(s == "abcdef");
-    }
+//        BOOST_TEST(test_attr("abcdef", +rdef, s));
+//        BOOST_TEST(s == "abcdef");
+//    }
 
     { // context (w/arg) tests
         BOOST_SPIRIT_USE_ACTORS(_val, _1, _r1, _r2)
@@ -139,7 +134,7 @@ main()
         BOOST_TEST(test("x", adef(boost::ref(ch))));
         BOOST_TEST(ch == 'x');
     }
-#if 0
+
     { // context (w/locals) tests
         BOOST_SPIRIT_USE_ACTORS(_1, _a)
         
@@ -148,16 +143,17 @@ main()
         BOOST_TEST(test("aa", adef));
         BOOST_TEST(!test("ax", adef));
     }
-#endif 
-    // $$$ Not yet implemented $$$
-    //~ { // context (w/args and locals) tests
 
-        //~ rule<char const*, void(int), locals<char> > a; // 1 arg + 1 local
-        //~ a = alpha[_a = _1 + _r1] >> char_(_a);
-        //~ BOOST_TEST(test("ab", a(phx::val(1))));
-        //~ BOOST_TEST(test("xy", a(phx::val(1))));
-        //~ BOOST_TEST(!test("ax", a(phx::val(1))));
-    //~ }
+
+    { // context (w/args and locals) tests
+        BOOST_SPIRIT_USE_ACTORS(_1, _a, _r1)
+
+        rule<class A, void(int)> a; // 1 arg + 1 local
+        auto adef(a = locals<char>()[alpha[_a = _1 + _r1] >> char_(_a)]);
+        BOOST_TEST(test("ab", adef(1)));
+        BOOST_TEST(test("xy", adef(1)));
+        BOOST_TEST(!test("ax", adef(1)));
+    }
 
     // $$$ No longer relevant $$$
     //~ { // void() has unused type (void == unused_type)

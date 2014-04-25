@@ -123,22 +123,21 @@ main()
 //~ #endif
     }
 
-    //~ {   // lazy chars
+    {   // lazy chars
 
-        //~ using namespace boost::spirit::x3::ascii;
+        using namespace boost::spirit::x3::ascii;
+        using boost::spirit::x3::unused_type;
+        
+        auto val = [](char a) { return [a](unused_type) { return a; }; };
 
-        //~ using boost::phoenix::val;
-        //~ using boost::phoenix::ref;
-        //~ using boost::spirit::x3::_1;
-
-        //~ BOOST_TEST((test("x", char_(val('x')))));
-        //~ BOOST_TEST((test("h", char_(val('a'), val('n')))));
-        //~ BOOST_TEST(test("0", char_(val("a-z0-9"))));
+        BOOST_TEST((test("x", char_(val('x')))));
+        BOOST_TEST((test("h", char_(val('a'), val('n')))));
+        BOOST_TEST(test("0", char_([](unused_type) { return "a-z0-9"; })));
 
         //~ char ch; // make sure lazy chars have an attribute
         //~ BOOST_TEST(test("x", char_(val('x'))[ref(ch) = _1]));
         //~ BOOST_TEST(ch == 'x');
-    //~ }
+    }
 
     //~ { // testing "what"
 
