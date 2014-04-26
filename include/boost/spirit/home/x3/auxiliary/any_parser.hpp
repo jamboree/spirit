@@ -13,6 +13,7 @@
 #endif
 
 #include <boost/spirit/home/x3/nonterminal/rule.hpp>
+#include <boost/spirit/home/x3/auxiliary/reference.hpp>
 #include <boost/spirit/home/x3/support/traits/move_to.hpp>
 #include <boost/spirit/home/x3/support/traits/is_parser.hpp>
 
@@ -27,13 +28,12 @@ namespace boost { namespace spirit { namespace x3
         typedef typename decompose_attr::params_type params_type;
         typedef x3::rule_context<attribute_type, params_type> rule_context;
         typedef x3::context<rule_context_tag, rule_context> context_type;
+        typedef x3::reference<any_parser> reference;
         static bool const has_attribute =
             !is_same<attribute_type, unused_type>::value;
         static bool const handles_container =
             traits::is_container<attribute_type>::value;
         static bool const caller_is_pass_through_unary = true;
-
-    public:
 
         template <typename Expr,
             typename Enable = typename enable_if<traits::is_parser<Expr>>::type>
