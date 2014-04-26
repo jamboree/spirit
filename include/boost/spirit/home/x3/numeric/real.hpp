@@ -25,6 +25,8 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef T attribute_type;
         static bool const has_attribute = true;
+        static bool const caller_is_pass_through_unary = true;
+        typedef extract_real<T, RealPolicies> extract;
         
         real_parser()
         	: policies() {}
@@ -37,7 +39,7 @@ namespace boost { namespace spirit { namespace x3
           , Context& context, T& attr_) const
         {
             x3::skip_over(first, last, context);
-            return extract_real<T, RealPolicies>::parse(first, last, attr_, policies);
+            return extract::parse(first, last, attr_, policies);
         }
 
         template <typename Iterator, typename Context, typename Attribute>
@@ -61,8 +63,7 @@ namespace boost { namespace spirit { namespace x3
             x3::skip_over(first, last, context);
             Iterator it(first);
             T attr_;
-            if (extract_real<T, RealPolicies>::parse(it, last, attr_, policies)
-                && attr_ == val)
+            if (extract::parse(it, last, attr_, policies) && attr_ == val)
             {
                 x3::traits::move_to(attr_, attr);
                 first = it;

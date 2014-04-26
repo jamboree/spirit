@@ -34,7 +34,7 @@ namespace boost { namespace spirit { namespace x3
         template <typename T>
         struct caller_traits
         {
-            typedef typename remove_reference<T>::type attribute_type;
+            typedef T attribute_type;
             static bool const has_attribute =
                 !is_same<unused_type, attribute_type>::value;
             static bool const handles_container =

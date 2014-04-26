@@ -47,8 +47,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     
     template <typename T, typename Context>
     using result_of_eval =
-        typename remove_rvalue_reference<
-            decltype(eval(declval<T>(), declval<Context>()))>::type;
+        unrefcv<decltype(eval(declval<T>(), declval<Context>()))>;
 }}}}
 
 
