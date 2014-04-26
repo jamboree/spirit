@@ -12,77 +12,58 @@
 #pragma once
 #endif
 
-#include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/support/context.hpp>
-#include <boost/spirit/home/x3/support/subcontext.hpp>
-#include <boost/spirit/home/x3/support/unused.hpp>
-#include <boost/spirit/home/x3/support/traits/container_traits.hpp>
-#include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
+#include <boost/spirit/home/x3/nonterminal/rule.hpp>
 #include <boost/spirit/home/x3/support/traits/move_to.hpp>
 #include <boost/spirit/home/x3/support/traits/is_parser.hpp>
-#include <memory>
-#include <string>
+
 
 namespace boost { namespace spirit { namespace x3
 {
-    template <
-        typename Iterator
-      , typename Attribute = unused_type
-      , typename Context = subcontext<>>
-    struct any_parser : parser<any_parser<Iterator, Attribute, Context>>
+    template <typename Iterator, typename Attribute = unused_type>
+    struct any_parser : parser<any_parser<Iterator, Attribute>>
     {
-        typedef Attribute attribute_type;
-
+        typedef detail::decompose_attribute<Attribute> decompose_attr;
+        typedef typename decompose_attr::result_type attribute_type;
+        typedef typename decompose_attr::params_type params_type;
+        typedef x3::rule_context<attribute_type, params_type> rule_context;
+        typedef x3::context<rule_context_tag, rule_context> context_type;
         static bool const has_attribute =
-            !is_same<unused_type, attribute_type>::value;
+            !is_same<attribute_type, unused_type>::value;
         static bool const handles_container =
-            traits::is_container<Attribute>::value;
+            traits::is_container<attribute_type>::value;
+        static bool const caller_is_pass_through_unary = true;
 
     public:
-        any_parser()
-          : _content(nullptr) {}
 
         template <typename Expr,
             typename Enable = typename enable_if<traits::is_parser<Expr>>::type>
         any_parser(Expr const& expr)
-          : _content(new holder<Expr>(expr)) {}
+          : f([p = as_parser(expr)](Iterator& first, Iterator const& last,
+                context_type const& context, attribute_type& attr)
+            {
+                return p.parse(first, last, context, attr);
+            })
+        {}
 
-        any_parser(any_parser const& other)
-          : _content(other._content ? other._content->clone() : nullptr) {}
-
-        any_parser(any_parser&& other) = default;
-
-        any_parser& operator=(any_parser const& other)
+        template <typename Context, typename... Ts>
+        bool parse(Iterator& first, Iterator const& last
+          , Context const&, attribute_type& attr, Ts&&... ts) const
         {
-            _content.reset(other._content ? other._content->clone() : nullptr);
-            return *this;
+            static_assert(
+                detail::check_args<params_type, Ts...>::value
+              , "args/params not matched");
+            
+            params_type params(std::forward<Ts>(ts)...);
+            rule_context r_context{addressof(attr), &params};
+            return f(first, last, context_type(r_context), attr);
         }
 
-        any_parser& operator=(any_parser&& other) = default;
-
-        template <typename Iterator_, typename Context_>
-        bool parse(Iterator_& first, Iterator_ const& last
-          , Context_ const& context, Attribute& attr) const
+        template <typename Context, typename Attribute_, typename... Ts>
+        bool parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute_& attr_, Ts&&... ts) const
         {
-            BOOST_STATIC_ASSERT_MSG(
-                (is_same<Iterator, Iterator_>::value)
-              , "Incompatible iterator used"
-            );
-
-            BOOST_ASSERT_MSG(
-                (_content != nullptr)
-              , "Invalid use of uninitialized any_parser"
-            );
-
-            return _content->parse(first, last, context, attr);
-        }
-
-        template <typename Iterator_, typename Context_, typename Attribute_>
-        bool parse(Iterator_& first, Iterator_ const& last
-          , Context_ const& context, Attribute_& attr_) const
-        {
-            Attribute attr;
-            if(parse(first, last, context, attr))
+            attribute_type attr;
+            if (parse(first, last, context, attr, std::forward<Ts>(ts)...))
             {
                 traits::move_to(attr, attr_);
                 return true;
@@ -90,64 +71,10 @@ namespace boost { namespace spirit { namespace x3
             return false;
         }
 
-        std::string get_info() const
-        {
-            return _content ? _content->get_info() : "";
-        }
-
     private:
-        struct placeholder
-        {
-            virtual placeholder* clone() const = 0;
-
-            virtual bool parse(Iterator& first, Iterator const& last
-              , Context const& context, Attribute& attr) const = 0;
-
-            virtual std::string get_info() const = 0;
-
-            virtual ~placeholder() {}
-        };
-
-        template <typename Expr>
-        struct holder : placeholder
-        {
-            typedef typename extension::as_parser<Expr>::value_type parser_type;
-
-            explicit holder(Expr const& p)
-              : _parser(as_parser(p)) {}
-
-            holder* clone() const override
-            {
-                return new holder(*this);
-            }
-
-            bool parse(Iterator& first, Iterator const& last
-              , Context const& context, Attribute& attr) const override
-            {
-                return _parser.parse(first, last, context, attr);
-            }
-
-            std::string get_info() const override
-            {
-                return x3::what(_parser);
-            }
-
-            parser_type _parser;
-        };
-
-    private:
-        std::unique_ptr<placeholder> _content;
-    };
-
-    template <typename Iterator, typename Attribute, typename Context>
-    struct get_info<any_parser<Iterator, Attribute, Context>>
-    {
-        typedef std::string result_type;
-        std::string operator()(
-            any_parser<Iterator, Attribute, Context> const& p) const
-        {
-            return p.get_info();
-        }
+        
+        std::function<bool(Iterator&, Iterator const&, context_type const&,
+            attribute_type&)> f;
     };
 }}}
 
