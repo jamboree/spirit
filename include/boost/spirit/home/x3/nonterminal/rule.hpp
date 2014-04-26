@@ -34,6 +34,9 @@ namespace boost { namespace spirit { namespace x3
     template <typename Attribute, typename Params>
     struct rule_context
     {
+        rule_context(Attribute* attr_ptr = nullptr, Params* params_ptr = nullptr)
+          : attr_ptr(attr_ptr), params_ptr(params_ptr) {}
+
         Attribute& val() const
         {
             BOOST_ASSERT(attr_ptr);
@@ -46,8 +49,8 @@ namespace boost { namespace spirit { namespace x3
             return *params_ptr;
         }
         
-        Attribute* attr_ptr = nullptr;
-        Params* params_ptr = nullptr;
+        Attribute* attr_ptr;
+        Params* params_ptr;
     };
 
     template <typename Context>

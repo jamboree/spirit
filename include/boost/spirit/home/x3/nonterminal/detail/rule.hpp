@@ -13,6 +13,7 @@
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
+#include <boost/spirit/home/x3/auxiliary/guard.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
 #include <boost/utility/addressof.hpp>
 
@@ -29,7 +30,9 @@ namespace boost { namespace spirit { namespace x3
     struct identity;
 
     struct parse_pass_context_tag;
-
+    
+    template <typename Iterator>
+    struct expectation_failure;
 }}}
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
