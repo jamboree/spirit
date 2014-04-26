@@ -134,9 +134,10 @@ main()
         BOOST_TEST((test("h", char_(val('a'), val('n')))));
         BOOST_TEST(test("0", char_([](unused_type) { return "a-z0-9"; })));
 
-        //~ char ch; // make sure lazy chars have an attribute
-        //~ BOOST_TEST(test("x", char_(val('x'))[ref(ch) = _1]));
-        //~ BOOST_TEST(ch == 'x');
+        char ch; // make sure lazy chars have an attribute
+        auto f = [&ch](unused_type, char c) { ch = c; };
+        BOOST_TEST(test("x", char_(val('x'))[f]));
+        BOOST_TEST(ch == 'x');
     }
 
     //~ { // testing "what"

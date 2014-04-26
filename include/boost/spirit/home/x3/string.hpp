@@ -12,6 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/string/string.hpp>
+#include <boost/spirit/home/x3/string/regex.hpp>
 #include <boost/spirit/home/x3/string/symbols.hpp>
 
 #endif

@@ -18,9 +18,6 @@
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
-
-#include <boost/type_traits/is_same.hpp>
-#include <boost/type_traits/add_reference.hpp>
 #include <string>
 
 namespace boost { namespace spirit { namespace x3
@@ -34,18 +31,18 @@ namespace boost { namespace spirit { namespace x3
         static bool const handles_container = true;
         static bool const caller_is_pass_through_unary = true;
 
-        template <typename Iterator, typename Context, typename Attribute_, typename String>
+        template <typename Iterator, typename Context, typename Attribute, typename String>
         bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute_& attr, String const& str) const
+          , Context const& context, Attribute& attr, String const& str) const
         {
             x3::skip_over(first, last, context);
             return detail::string_parse(str, first, last, attr);
         }
         
         // skipper delimited
-        template <typename Iterator, typename Context, typename Attribute_>
+        template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute_& attr) const
+          , Context const& context, Attribute& attr) const
         {
             x3::skip_over(first, last, context);
             auto const& skipper = get<skipper_tag>(context);
@@ -65,6 +62,12 @@ namespace boost { namespace spirit { namespace x3
     namespace standard
     {
         typedef string_parser<char_encoding::standard> string_type;
+        string_type const string{};
+    }
+    
+    namespace standard_wide
+    {
+        typedef string_parser<char_encoding::standard_wide> string_type;
         string_type const string{};
     }
 
