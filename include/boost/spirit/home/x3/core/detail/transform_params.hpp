@@ -64,9 +64,11 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     
     template <typename Subject, typename... Ts>
     struct transform_params<Subject, typename disable_if_substitution_failure<
-        decltype(Subject::transform_params(declval<Ts>()...))>::type, Ts...>
+        decltype(declval<Subject const>().transform_params(declval<Ts>()...))>::type, Ts...>
     {
-        typedef decltype(Subject::transform_params(declval<Ts>()...)) type;
+        typedef
+            decltype(declval<Subject const>().transform_params(declval<Ts>()...))
+        type;
         typedef mpl::true_ tag;
         typedef bool yes;
     };

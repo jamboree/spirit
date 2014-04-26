@@ -39,7 +39,7 @@ namespace boost { namespace spirit { namespace x3
         template <typename... As>
         caller(mpl::true_, Subject const& subject, As&&... as)
           : base_type(subject)
-          , params(Subject::transform_params(std::forward<As>(as)...))
+          , params(subject.transform_params(std::forward<As>(as)...))
         {}
         
         template <typename... As>
@@ -82,7 +82,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr, As&&... as) const
         {
             return this->subject.parse(first, last, context, attr,
-                Subject::transform_params(std::forward<As>(as)...));
+                this->subject.transform_params(std::forward<As>(as)...));
         }
         
         template <typename Iterator, typename Context, typename Attribute, typename... As>

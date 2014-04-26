@@ -73,7 +73,7 @@ namespace boost { namespace spirit { namespace x3
         template <typename... As>
         directive_caller(mpl::true_, Directive const& directive, As&&... as)
           : directive(directive)
-          , params(Directive::transform_params(std::forward<As>(as)...))
+          , params(directive.transform_params(std::forward<As>(as)...))
         {}
           
         template <typename... As>
@@ -125,7 +125,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr, As&&... as) const
         {
             return directive.parse(subject, first, last, context, attr,
-                Subject::transform_params(std::forward<As>(as)...));
+                directive.transform_params(std::forward<As>(as)...));
         }
         
         template <typename Subject, typename Iterator, typename Context
