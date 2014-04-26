@@ -36,26 +36,6 @@ struct f
     }
 };
 
-struct f1
-{
-    template <typename Context>
-    void operator()(Context const& ctx, char c) const
-    {
-        x3::_val(ctx) = c + std::get<0>(x3::_params(ctx));
-    }
-};
-
-struct f2
-{
-    char& ch;
-    
-    template <typename Context>
-    void operator()(Context const& ctx, char c) const
-    {
-        ch = c;
-    }
-};
-
 int
 main()
 {
