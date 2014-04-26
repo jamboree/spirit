@@ -45,7 +45,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             x3::skip_over(first, last, context);
-            auto const& skipper = get<skipper_tag>(context);
+            auto const& skipper = x3::get<skipper_tag>(context);
             Iterator it(first);
             for ( ; it != last; ++it)
             {
