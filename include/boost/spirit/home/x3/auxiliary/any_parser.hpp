@@ -12,6 +12,7 @@
 #pragma once
 #endif
 
+#include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/nonterminal/rule.hpp>
 #include <boost/spirit/home/x3/auxiliary/reference.hpp>
 #include <boost/spirit/home/x3/support/traits/move_to.hpp>
@@ -47,14 +48,15 @@ namespace boost { namespace spirit { namespace x3
 
         template <typename Context, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
-          , Context const&, attribute_type& attr, Ts&&... ts) const
+          , Context const& context, attribute_type& attr, Ts&&... ts) const
         {
             static_assert(
                 detail::check_args<params_type, Ts...>::value
               , "args/params not matched");
             
             params_type params(std::forward<Ts>(ts)...);
-            rule_context r_context{addressof(attr), &params};
+            rule_context r_context{boost::addressof(attr), &params};
+            x3::skip_over(first, last, context);
             return f(first, last, context_type(r_context), attr);
         }
 
