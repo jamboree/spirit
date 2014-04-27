@@ -13,7 +13,8 @@
 
 #include <boost/type_traits/decay.hpp>
 #include <boost/spirit/home/x3/support/traits/is_parser.hpp>
-#include <boost/spirit/home/x3/support/utility/type_traits.hpp>
+#include <boost/spirit/home/x3/support/utility/unrefcv.hpp>
+#include <boost/spirit/home/x3/support/utility/is_callable.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail

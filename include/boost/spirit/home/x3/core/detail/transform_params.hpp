@@ -59,7 +59,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     {
         typedef std::tuple<typename wrap_param<Ts>::type...> type;
         typedef mpl::false_ tag;
-        typedef bool no;
     };
     
     template <typename Subject, typename... Ts>
@@ -70,7 +69,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             decltype(declval<Subject const>().transform_params(declval<Ts>()...))
         type;
         typedef mpl::true_ tag;
-        typedef bool yes;
     };
 }}}}
 

@@ -10,7 +10,7 @@
 
 #include <tuple>
 #include <boost/mpl/identity.hpp>
-#include <boost/spirit/home/x3/support/utility/type_traits.hpp>
+#include <boost/spirit/home/x3/support/utility/is_callable.hpp>
 
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
