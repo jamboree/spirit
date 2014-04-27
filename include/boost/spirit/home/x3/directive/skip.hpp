@@ -1,6 +1,7 @@
 /*=============================================================================
     Copyright (c) 2001-2013 Joel de Guzman
     Copyright (c) 2013 Agustin Berge
+    Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -46,11 +47,18 @@ namespace boost { namespace spirit { namespace x3
             return subject.parse(first, last, context, attr);
         }
         
+        template <typename Skipper>
+        static typename extension::as_parser<Skipper>::value_type
+        transform_params(Skipper const& skipper)
+        {
+            return as_parser(skipper);
+        }
+        
         template <typename Subject, typename Iterator, typename Context, typename Attribute, typename Skipper>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, Skipper const& s) const
+          , Context const& context, Attribute& attr, Skipper const& skipper) const
         {
-            auto const& skipper = as_parser(s);
+            static_assert(traits::is_parser<Skipper>::value, "invalid skipper");
             return subject.parse(
                 first, last
               , make_context<skipper_tag>(skipper, context)

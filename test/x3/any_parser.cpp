@@ -28,13 +28,14 @@ main()
     using boost::spirit::x3::int_;
     using boost::spirit::x3::make_context;
     using boost::spirit::x3::lit;
+    using boost::spirit::x3::skip;
     using boost::spirit::x3::unused_type;
     using boost::spirit::x3::phrase_parse;
     using boost::spirit::x3::skip_flag;
     using boost::spirit::x3::skipper_tag;
 
     typedef char const* iterator_type;
-    typedef decltype(make_context<skipper_tag>(space)) context_type;
+
     { // basic tests
 
         auto a = lit('a');
@@ -56,26 +57,25 @@ main()
         auto c = lit('c');
 
         {
-            any_parser<iterator_type, unused_type, context_type> start =
-                *(a | b | c);
+            any_parser<iterator_type, unused_type> start =
+                skip(space)[*(a | b | c)];
 
-            BOOST_TEST(test(" a b c a b c a c b ", start, space));
+            BOOST_TEST(test(" a b c a b c a c b ", start));
         }
     }
 
     { // basic tests w/ skipper but no final post-skip
 
-        any_parser<iterator_type, unused_type, context_type> a = lit('a');
-        any_parser<iterator_type, unused_type, context_type> b = lit('b');
-        any_parser<iterator_type, unused_type, context_type> c = lit('c');
+        any_parser<iterator_type> a = lit('a');
+        any_parser<iterator_type> b = lit('b');
+        any_parser<iterator_type> c = lit('c');
 
         {
-            any_parser<iterator_type, unused_type, context_type> start = *(a | b) >> c;
+            any_parser<iterator_type> start = skip(space)[*(a | b) >> c];
 
             char const *s1 = " a b a a b b a c ... "
               , *const e1 = s1 + std::strlen(s1);
-            BOOST_TEST(phrase_parse(s1, e1, start, space, skip_flag::dont_post_skip)
-              && s1 == e1 - 5);
+            BOOST_TEST(parse(s1, e1, start) && s1 == e1 - 5);
         }
     }
 
