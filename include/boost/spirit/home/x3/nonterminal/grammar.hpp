@@ -14,148 +14,137 @@
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
 #include <boost/spirit/home/x3/nonterminal/grammar.hpp>
-#include <boost/fusion/container/map.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
-#include <boost/fusion/sequence/intrinsic/has_key.hpp>
+#include <boost/fusion/support/pair.hpp>
 
 #include <boost/mpl/eval_if.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/config.hpp>
+
+
+namespace boost { namespace spirit { namespace x3 { namespace detail
+{
+    template <typename First, typename... Rest>
+    struct rule_map : First, Rest...
+    {
+        typedef typename First::second_type start_rule;
+
+        rule_map(First&& f, Rest&&... rs)
+          : First(std::move(f)), Rest(std::move(rs))...
+        {}
+        
+        template <typename ID, typename T>
+        static T const& get_impl(fusion::pair<ID, T> const& pair)
+        {
+            return pair.second;
+        }
+        
+        template <typename ID, typename T>
+        static mpl::true_ has_impl(fusion::pair<ID, T> const&);
+        
+        template <typename ID>
+        static mpl::false_ has_impl(...);
+        
+        template <typename ID>
+        auto get(mpl::identity<ID>) const->decltype(get_impl<ID>(*this))
+        {
+            return get_impl<ID>(*this);
+        }
+        
+        template <typename ID>
+        auto has(mpl::identity<ID>) const->decltype(has_impl<ID>(*this))
+        {
+            return decltype(has_impl<ID>(*this))();
+        }
+        
+        start_rule const& start() const
+        {
+            return First::second;
+        }
+    };
+}}}}
 
 namespace boost { namespace spirit { namespace x3
 {
     template <typename Elements, typename Next>
     struct grammar_context
     {
+        Elements const& elements;
+        Next const& next;
+        
         grammar_context(Elements const& elements, Next const& next)
             : elements(elements), next(next) {}
 
         template <typename ID>
         struct get_result
         {
-            typedef typename ID::type id_type;
-            typedef typename Next::template get_result<ID> next_get_result;
-
-            typedef typename mpl::eval_if<
-                fusion::result_of::has_key<Elements const, id_type>
-              , fusion::result_of::at_key<Elements const, id_type>
-              , next_get_result>::type
-            type;
+            typedef decltype(declval<grammar_context>().get(declval<ID>())) type;
         };
 
         template <typename ID>
-        typename get_result<ID>::type
-        get_impl(ID id, mpl::true_) const
+        auto get_impl(ID id, mpl::true_) const->decltype(elements.get(id))
         {
-            typedef typename ID::type id_type;
-            return fusion::at_key<id_type>(elements);
+            return elements.get(id);
         }
 
         template <typename ID>
-        typename get_result<ID>::type
-        get_impl(ID id, mpl::false_) const
+        auto get_impl(ID id, mpl::false_) const->decltype(next.get(id))
         {
             return next.get(id);
         }
 
         template <typename ID>
-        typename get_result<ID>::type
-        get(ID id) const
+        auto get(ID id) const->decltype(this->get_impl(id, elements.has(id)))
         {
-            typedef typename ID::type id_type;
-            typename fusion::result_of::has_key<Elements, id_type> has_key;
-            return get_impl(id, has_key);
+            return get_impl(id, elements.has(id));
         }
-
-        Elements const& elements;
-        Next const& next;
     };
 
-    template <typename Elements>
-    struct grammar_parser : parser<grammar_parser<Elements>>
+    template <typename... Elements>
+    struct grammar_parser : parser<grammar_parser<Elements...>>
     {
-        typedef typename
-            remove_reference<
-                typename fusion::result_of::front<Elements>::type
-            >::type::second_type
-        start_rule;
+        typedef
+            detail::rule_map<fusion::pair<typename Elements::id, Elements>...>
+        rule_map;
+        typedef typename rule_map::start_rule start_rule;
+        typedef typename start_rule::attribute_type attribute_type;
+        static bool const has_attribute = start_rule::has_attribute;
+        static bool const handles_container = start_rule::handles_container;
+        static bool const caller_is_pass_through_unary = true;
 
-        grammar_parser(char const* name, Elements const& elements)
-          : name(name), elements(elements) {}
+        grammar_parser(char const* name, Elements const&... elements)
+          : name(name)
+          , elements(fusion::pair<typename Elements::id, Elements>(elements)...)
+        {}
 
-        template <typename Iterator, typename Context, typename Attribute_>
+        template <typename Iterator, typename Context, typename Attribute, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute_& attr) const
+          , Context const& context, Attribute& attr, Ts&&... ts) const
         {
-            grammar_context<Elements, Context> our_context(elements, context);
-            return fusion::front(elements).second.parse(first, last, our_context, attr);
+            grammar_context<rule_map, Context> our_context(elements, context);
+            return elements.start().parse(first, last, our_context, attr
+                , std::forward<Ts>(ts)...);
         }
 
         char const* name;
-        Elements elements;
+        rule_map elements;
     };
 
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-
-    template <typename ...Elements>
-    grammar_parser<fusion::map<fusion::pair<typename Elements::id, Elements>...>>
+    template <typename... Elements>
+    grammar_parser<Elements...>
     grammar(char const* name, Elements const&... elements)
     {
-        typedef fusion::map<fusion::pair<typename Elements::id, Elements>...> sequence;
-        return grammar_parser<sequence>(name,
-            sequence(fusion::make_pair<typename Elements::id>(elements)...));
+        return {name, elements...};
     }
 
-#else
-
-    template <typename T1, typename T2, typename T3>
-    grammar_parser<
-        fusion::map<
-            fusion::pair<typename T1::id, T1>
-          , fusion::pair<typename T2::id, T2>
-          , fusion::pair<typename T3::id, T3>
-        >>
-    grammar(char const* name, T1 const& _1, T2 const& _2, T3 const& _3)
-    {
-        typedef fusion::map<
-            fusion::pair<typename T1::id, T1>
-          , fusion::pair<typename T2::id, T2>
-          , fusion::pair<typename T3::id, T3>>
-        sequence;
-
-        return grammar_parser<sequence>(name,
-            sequence(
-                fusion::make_pair<typename T1::id>(_1)
-              , fusion::make_pair<typename T2::id>(_2)
-              , fusion::make_pair<typename T3::id>(_3)
-            ));
-    }
-
-#endif
-
-    template <typename Elements>
-    struct get_info<grammar_parser<Elements>>
+    template <typename...  Elements>
+    struct get_info<grammar_parser<Elements...>>
     {
         typedef std::string result_type;
-        std::string operator()(grammar_parser<Elements> const& p) const
+        std::string operator()(grammar_parser<Elements...> const& p) const
         {
             return p.name;
         }
     };
-
 }}}
-
-namespace boost { namespace spirit { namespace x3 { namespace traits
-{
-    template <typename Elements, typename Context>
-    struct attribute_of<x3::grammar_parser<Elements>, Context>
-        : attribute_of<
-            typename x3::grammar_parser<Elements>::start_rule, Context> {};
-    
-    template <typename Elements, typename Context>
-    struct has_attribute<x3::grammar_parser<Elements>, Context>
-        : has_attribute<
-            typename x3::grammar_parser<Elements>::start_rule, Context> {};
-}}}}
 
 #endif
