@@ -26,20 +26,19 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     template <typename First, typename... Rest>
     struct rule_map : First, Rest...
     {
-        typedef typename First::second_type start_rule;
-
-        rule_map(First&& f, Rest&&... rs)
-          : First(std::move(f)), Rest(std::move(rs))...
+        rule_map(First const& f, Rest const&... rs)
+          : First(f), Rest(rs)...
         {}
         
-        template <typename ID, typename T>
-        static T const& get_impl(fusion::pair<ID, T> const& pair)
+        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
+        static rule_definition<ID, RHS, Attribute, Params, P> const&
+        get_impl(rule_definition<ID, RHS, Attribute, Params, P> const& def)
         {
-            return pair.second;
+            return def;
         }
         
-        template <typename ID, typename T>
-        static mpl::true_ has_impl(fusion::pair<ID, T> const&);
+        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
+        static mpl::true_ has_impl(rule_definition<ID, RHS, Attribute, Params, P> const&);
         
         template <typename ID>
         static mpl::false_ has_impl(...);
@@ -56,9 +55,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             return decltype(has_impl<ID>(*this))();
         }
         
-        start_rule const& start() const
+        First const& front() const
         {
-            return First::second;
+            return *this;
         }
     };
 }}}}
@@ -102,18 +101,12 @@ namespace boost { namespace spirit { namespace x3
     template <typename... Elements>
     struct grammar_parser : parser<grammar_parser<Elements...>>
     {
-        typedef
-            detail::rule_map<fusion::pair<typename Elements::id, Elements>...>
-        rule_map;
-        typedef typename rule_map::start_rule start_rule;
-        typedef typename start_rule::attribute_type attribute_type;
-        static bool const has_attribute = start_rule::has_attribute;
-        static bool const handles_container = start_rule::handles_container;
+        typedef detail::rule_map<Elements...> rule_map;
         static bool const caller_is_pass_through_unary = true;
 
         grammar_parser(char const* name, Elements const&... elements)
           : name(name)
-          , elements(fusion::pair<typename Elements::id, Elements>(elements)...)
+          , elements(elements...)
         {}
 
         template <typename Iterator, typename Context, typename Attribute, typename... Ts>
@@ -121,7 +114,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr, Ts&&... ts) const
         {
             grammar_context<rule_map, Context> our_context(elements, context);
-            return elements.start().parse(first, last, our_context, attr
+            return elements.front().parse(first, last, our_context, attr
                 , std::forward<Ts>(ts)...);
         }
 
@@ -146,5 +139,23 @@ namespace boost { namespace spirit { namespace x3
         }
     };
 }}}
+
+namespace boost { namespace spirit { namespace x3 { namespace traits
+{
+    template <typename First, typename... Rest, typename Context>
+    struct attribute_of<grammar_parser<First, Rest...>, Context>
+      : attribute_of<First, Context>
+    {};
+    
+    template <typename First, typename... Rest, typename Context>
+    struct has_attribute<grammar_parser<First, Rest...>, Context>
+      : has_attribute<First, Context>
+    {};
+    
+    template <typename First, typename... Rest, typename Context>
+    struct handles_container<grammar_parser<First, Rest...>, Context>
+      : handles_container<First, Context>
+    {};
+}}}}
 
 #endif
