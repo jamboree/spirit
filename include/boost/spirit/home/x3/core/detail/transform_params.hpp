@@ -69,6 +69,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             decltype(declval<Subject const>().transform_params(declval<Ts>()...))
         type;
         typedef mpl::true_ tag;
+        typedef type sfinae_result;
     };
 }}}}
 

@@ -13,6 +13,7 @@
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/caller.hpp>
+#include <boost/spirit/home/x3/core/detail/transform_params.hpp>
 
 
 namespace boost { namespace spirit { namespace x3
@@ -22,6 +23,13 @@ namespace boost { namespace spirit { namespace x3
     {
         reference(Subject& ref)
           : ref(ref) {}
+        
+        template <typename... Ts>
+        typename detail::transform_params<Subject, void, Ts...>::sfinae_result
+        transform_params(Ts&&... ts) const
+        {
+            return ref.transform_params(std::forward<Ts>(ts)...);
+        }
 
         template <typename Iterator, typename Context, typename Attribute, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
