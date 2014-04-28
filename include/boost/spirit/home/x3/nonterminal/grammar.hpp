@@ -1,5 +1,6 @@
 /*=============================================================================
     Copyright (c) 2001-2013 Joel de Guzman
+    Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -11,56 +12,10 @@
 #pragma once
 #endif
 
+#include <boost/spirit/home/x3/nonterminal/detail/grammar.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
-#include <boost/spirit/home/x3/nonterminal/grammar.hpp>
-#include <boost/fusion/support/pair.hpp>
-
-#include <boost/mpl/eval_if.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-#include <boost/config.hpp>
-
-
-namespace boost { namespace spirit { namespace x3 { namespace detail
-{
-    template <typename First, typename... Rest>
-    struct rule_map : First, Rest...
-    {
-        rule_map(First const& f, Rest const&... rs)
-          : First(f), Rest(rs)...
-        {}
-        
-        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
-        static rule_definition<ID, RHS, Attribute, Params, P> const&
-        get_impl(rule_definition<ID, RHS, Attribute, Params, P> const& def)
-        {
-            return def;
-        }
-        
-        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
-        static mpl::true_ has_impl(rule_definition<ID, RHS, Attribute, Params, P> const&);
-        
-        template <typename ID>
-        static mpl::false_ has_impl(...);
-        
-        template <typename ID>
-        auto get(mpl::identity<ID>) const->decltype(get_impl<ID>(*this))
-        {
-            return get_impl<ID>(*this);
-        }
-        
-        template <typename ID>
-        auto has(mpl::identity<ID>) const->decltype(has_impl<ID>(*this))
-        {
-            return decltype(has_impl<ID>(*this))();
-        }
-        
-        First const& front() const
-        {
-            return *this;
-        }
-    };
-}}}}
+#include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -71,7 +26,7 @@ namespace boost { namespace spirit { namespace x3
         Next const& next;
         
         grammar_context(Elements const& elements, Next const& next)
-            : elements(elements), next(next) {}
+          : elements(elements), next(next) {}
 
         template <typename ID>
         struct get_result
@@ -123,7 +78,7 @@ namespace boost { namespace spirit { namespace x3
     };
 
     template <typename... Elements>
-    grammar_parser<Elements...>
+    inline grammar_parser<Elements...>
     grammar(char const* name, Elements const&... elements)
     {
         return {name, elements...};
