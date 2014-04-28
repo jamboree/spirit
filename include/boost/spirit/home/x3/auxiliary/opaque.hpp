@@ -12,8 +12,10 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/core/caller.hpp>
 #include <boost/spirit/home/x3/core/detail/transform_params.hpp>
+#include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
+#include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
+#include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 #include <boost/utility/result_of.hpp>
 
 
