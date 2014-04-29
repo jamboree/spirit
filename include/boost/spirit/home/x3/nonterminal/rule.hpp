@@ -95,16 +95,16 @@ namespace boost { namespace spirit { namespace x3
                 detail::check_args<Params, Ts...>::value
               , "args/params not matched");
             
+            Params params(std::forward<Ts>(ts)...);
             rule_context<Attribute, Params> r_context;
             auto rule_ctx1 = make_context<rule_context_with_id_tag<ID>>(r_context, context);
             auto rule_ctx2 = make_context<rule_context_tag>(r_context, rule_ctx1);
             auto this_context = make_context<ID>(*this, rule_ctx2);
-            
+
             return detail::parse_rule<attribute_type, Params, ID>
                 ::call_rule_definition(
                     rhs, name, first, last, this_context
-                  , attr, Params(std::forward<Ts>(ts)...)
-                  , r_context.attr_ptr, r_context.params_ptr
+                  , attr, params, r_context.attr_ptr, r_context.params_ptr
                   , mpl::bool_<explicit_attribute_propagation>());
         }
 

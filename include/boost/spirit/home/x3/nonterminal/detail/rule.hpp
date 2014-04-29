@@ -221,7 +221,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             RHS const& rhs
           , char const* rule_name
           , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr, Params params
+          , Context const& context, ActualAttribute& attr, Params& params
           , AttributePtr& attr_ptr, ParamsPtr& params_ptr
           , ExplicitAttrPropagation)
         {
@@ -274,13 +274,12 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             // The rule body is already established by the rule_definition class,
             // we will not do it again. We'll simply call the RHS by calling
             // call_rule_definition.
-
+            
+            Params params(std::forward<Ts>(ts)...);
             return call_rule_definition(
-                rule_def.rhs, rule_name, first, last
-              , context, attr, Params(std::forward<Ts>(ts)...)
-              , attr_ctx.attr_ptr, attr_ctx.params_ptr
-              , mpl::bool_<(RuleDef::explicit_attribute_propagation)>()
-              , std::forward<Ts>(ts)...);
+                rule_def.rhs, rule_name, first, last, context
+              , attr, params, attr_ctx.attr_ptr, attr_ctx.params_ptr
+              , mpl::bool_<(RuleDef::explicit_attribute_propagation)>());
         }
 
         template <typename RuleDef, typename Iterator, typename Context
