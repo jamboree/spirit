@@ -25,6 +25,7 @@ namespace boost { namespace spirit { namespace x3
     {
         static bool const is_pass_through_unary = true;
         
+        // skip[p] - reskip
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename disable_if<has_skipper<Context>, bool>::type
         parse(Subject const& subject, Iterator& first, Iterator const& last
@@ -39,6 +40,7 @@ namespace boost { namespace spirit { namespace x3
               , attr);
         }
         
+        // skip[p] - as is
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         typename enable_if<has_skipper<Context>, bool>::type
         parse(Subject const& subject, Iterator& first, Iterator const& last
@@ -54,6 +56,7 @@ namespace boost { namespace spirit { namespace x3
             return as_parser(skipper);
         }
         
+        // skip(s)[p]
         template <typename Subject, typename Iterator, typename Context, typename Attribute, typename Skipper>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, Skipper const& skipper) const
