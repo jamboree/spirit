@@ -169,8 +169,9 @@ namespace boost { namespace spirit { namespace x3
         template <typename ID, typename Attribute>
         struct is_rule<rule<ID, Attribute>> : mpl::true_ {};
         
-        template <typename ID, typename Attribute, typename RHS, bool explicit_attribute_propagation>
-        struct is_rule<rule_definition<ID, RHS, Attribute, explicit_attribute_propagation>> : mpl::true_ {};
+        template <typename ID, typename RHS, typename Attribute, typename Params, bool explicit_attribute_propagation>
+        struct is_rule<rule_definition<ID, RHS, Attribute, Params, explicit_attribute_propagation>>
+          : mpl::true_ {};
     }
 
     template <typename T>
