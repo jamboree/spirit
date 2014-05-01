@@ -18,7 +18,10 @@
 namespace boost { namespace spirit { namespace x3
 {
     template <typename T>
-    using unrefcv = typename remove_cv<typename remove_reference<T>::type>::type;
+    using unrefcv = remove_cv<typename remove_reference<T>::type>;
+    
+    template <typename T>
+    using unrefcv_t = typename unrefcv<T>::type;
 }}}
 
 

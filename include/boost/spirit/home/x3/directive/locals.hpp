@@ -44,7 +44,7 @@ namespace boost { namespace spirit { namespace x3
     };
     
     template <typename... Ts, typename... As>
-    inline directive_caller<locals_directive<Ts...>, unrefcv<As>...>
+    inline directive_caller<locals_directive<Ts...>, unrefcv_t<As>...>
     locals(As&&... as)
     {
         return {locals_directive<Ts...>(), std::forward<As>(as)...};

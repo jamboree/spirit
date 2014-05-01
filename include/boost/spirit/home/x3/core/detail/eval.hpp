@@ -48,7 +48,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     
     template <typename T, typename Context>
     using result_of_eval =
-        unrefcv<decltype(detail::eval(declval<T>(), declval<Context>()))>;
+        unrefcv_t<decltype(detail::eval(declval<T>(), declval<Context>()))>;
 }}}}
 
 

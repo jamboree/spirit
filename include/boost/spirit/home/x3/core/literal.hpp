@@ -30,7 +30,7 @@ namespace boost { namespace spirit { namespace x3
         static bool const caller_is_pass_through_unary = true;
 
         template <typename T>
-        static caller<typename extension::literal<unrefcv<T>>::type, unrefcv<T>>
+        static caller<typename extension::literal<unrefcv_t<T>>::type, unrefcv_t<T>>
         transform_params(T&& val)
         {
             return {{}, std::forward<T>(val)};
