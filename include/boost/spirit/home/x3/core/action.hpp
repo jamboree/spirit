@@ -172,8 +172,10 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             typedef typename
-                traits::make_attribute<typename traits::attribute_of<
-                    Subject, Context>::type, Attribute>::value_type&
+                traits::make_attribute<
+                    typename traits::attribute_of<Subject, Context>::type
+                  , typename remove_const<Attribute>::type
+                >::value_type&
             attribute_type;
             
             using arity = detail::action_arity<action_type const
