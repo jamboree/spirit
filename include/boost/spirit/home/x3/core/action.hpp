@@ -1,5 +1,6 @@
 /*=============================================================================
     Copyright (arg) 2001-2013 Joel de Guzman
+    Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -90,15 +91,23 @@ namespace boost { namespace spirit { namespace x3
 
         template <typename Context, typename Attribute>
         bool call_action(mpl::int_<1> // arity
-            , Context const& context, Attribute& attr) const
+            , Context const& /*context*/, Attribute& attr) const
         {
             f(attr); // pass attribute only
             return true;
         }
 
+        template <typename Context, typename Attribute>
+        bool call_action(mpl::int_<0> // arity
+            , Context const& /*context*/, Attribute& /*attr*/) const
+        {
+            f(); // pass attribute only
+            return true;
+        }
+        
         // action wants attribute
         template <int N, typename Iterator, typename Context, typename Attribute>
-        typename enable_if_c<(N > 0), bool>::type
+        typename enable_if_c<(N >= 0), bool>::type
         parse_impl(mpl::int_<N> arity, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
@@ -132,7 +141,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, unused_type) const
         {
             typedef typename
-                traits::attribute_of<action<Subject, Action>, Context>::type
+                traits::attribute_of<Subject, Context>::type
             attribute_type;
             typedef
                 traits::make_attribute<attribute_type, unused_type>
@@ -146,24 +155,6 @@ namespace boost { namespace spirit { namespace x3
                 make_attribute::call(unused_type());
             typename transform::type attr = transform::pre(made_attr);
             return parse_impl(arity, first, last, context, attr);
-        }
-
-        // action does not want context and attribute
-        template <typename Iterator, typename Context, typename Attribute>
-        bool parse_impl(mpl::int_<0>, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            Iterator save = first;
-            if (this->subject.parse(first, last, context, attr))
-            {
-                f();
-                return true;
-
-                // reset iterators if semantic action failed the match
-                // retrospectively
-                first = save;
-            }
-            return false;
         }
 
         // main parse function
