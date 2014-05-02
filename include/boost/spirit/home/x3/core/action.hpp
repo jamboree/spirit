@@ -18,6 +18,7 @@
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
 #include <boost/type_traits/is_class.hpp>
 #include <boost/type_traits/is_member_pointer.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mem_fn.hpp>
 
@@ -112,6 +113,16 @@ namespace boost { namespace spirit { namespace x3
                 first = save;
             }
             return false;
+        }
+        
+        // attr==raw_attribute_type, action wants iterator_range (see raw.hpp)
+        template <int N, typename Iterator, typename Context>
+        typename enable_if_c<(N > 0), bool>::type
+        parse_impl(mpl::int_<N> arity, Iterator& first, Iterator const& last
+          , Context const& context, raw_attribute_type) const
+        {
+            boost::iterator_range<Iterator> rng;
+            return parse_impl(arity, first, last, context, rng);
         }
 
         // attr==unused, action wants attribute
