@@ -4,8 +4,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //////////////////////////////////////////////////////////////////////////////*/
-#ifndef BOOST_SPIRIT_X3_SUPPORT_UTILITY_INTEGER_SEQUENCE_HPP_INCLUDED
-#define BOOST_SPIRIT_X3_SUPPORT_UTILITY_INTEGER_SEQUENCE_HPP_INCLUDED
+#ifndef BOOST_SPIRIT_X3_INTEGER_SEQUENCE_HPP_INCLUDED
+#define BOOST_SPIRIT_X3_INTEGER_SEQUENCE_HPP_INCLUDED
 
 #if defined(_MSC_VER)
 #pragma once
@@ -14,6 +14,9 @@
 #include <cstddef>
 #include <boost/type_traits/integral_constant.hpp>
 
+// This is a standard (c++1y) compatible integer_sequence implementation,
+// it's needed for now, and it could be replaced with std::integer_sequence
+// once the new standard is available everywhere.
 
 namespace boost { namespace spirit { namespace x3
 {
