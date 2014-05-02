@@ -171,9 +171,14 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
+            typedef typename
+                traits::make_attribute<typename traits::attribute_of<
+                    Subject, Context>::type, Attribute>::value_type&
+            attribute_type;
+            
             using arity = detail::action_arity<action_type const
               , x3::context<parse_pass_context_tag, bool, Context>
-              , typename traits::attribute_of<Subject, Context>::type>;
+              , attribute_type>;
 
             static_assert(arity::value != -1, "invalid action");
             return parse_impl(arity(), first, last, context, attr);
