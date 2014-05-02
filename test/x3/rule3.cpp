@@ -12,9 +12,7 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/actor.hpp>
 #include <boost/ref.hpp>
-#include <boost/phoenix/core.hpp>
 #include <boost/phoenix/operator.hpp>
-#include <boost/phoenix/object.hpp>
 //~ #include <boost/phoenix/bind.hpp>
 //~ #include <boost/fusion/include/std_pair.hpp>
 

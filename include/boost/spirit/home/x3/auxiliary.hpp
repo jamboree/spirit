@@ -21,6 +21,7 @@
 #include <boost/spirit/home/x3/auxiliary/attr.hpp>
 #include <boost/spirit/home/x3/auxiliary/reference.hpp>
 #include <boost/spirit/home/x3/auxiliary/opaque.hpp>
+#include <boost/spirit/home/x3/auxiliary/advance.hpp>
 //~ #include <boost/spirit/home/x3/auxiliary/attr_cast.hpp>
 
 #endif
