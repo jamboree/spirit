@@ -20,6 +20,7 @@ int main()
     using boost::spirit::x3::int_;
     using boost::spirit::x3::char_;
     using boost::spirit::x3::lit;
+    using boost::spirit::x3::advance;
     using boost::spirit::x3::standard::space;
 
     { // test eoi
@@ -56,6 +57,15 @@ int main()
         );
     }
     
+    { // test stepper
+        std::vector<int> v;
+        char const str[] = "gactgcatactg";
+        auto begin = std::begin(str), end = std::end(str) - 1;
+        char const* it;
+        BOOST_TEST(parse(it = begin, end, seek["actg"]) && it == str + 5);
+        BOOST_TEST(parse(it = begin, end, seek(advance(4))["actg"]) && it == str + 12);
+    }
+        
     { // test action
         bool b = false;
         auto f = [&b]{ b = true; };
