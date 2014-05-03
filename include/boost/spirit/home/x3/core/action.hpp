@@ -23,7 +23,6 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mem_fn.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename Action, typename Context, typename Attribute>
@@ -59,6 +58,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 namespace boost { namespace spirit { namespace x3
 {
     struct parse_pass_context_tag;
+    struct raw_attribute_type;
     
     template <typename Context>
     inline bool& _pass(Context const& context)
@@ -128,7 +128,7 @@ namespace boost { namespace spirit { namespace x3
         template <int N, typename Iterator, typename Context>
         typename enable_if_c<(N > 0), bool>::type
         parse_impl(mpl::int_<N> arity, Iterator& first, Iterator const& last
-          , Context const& context, raw_attribute_type) const
+          , Context const& context, raw_attribute_type const&) const
         {
             boost::iterator_range<Iterator> rng;
             return parse_impl(arity, first, last, context, rng);
