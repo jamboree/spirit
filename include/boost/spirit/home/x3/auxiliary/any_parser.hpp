@@ -30,7 +30,7 @@ namespace boost { namespace spirit { namespace x3
         typedef typename decompose_attr::params_type params_type;
         typedef x3::rule_context<attribute_type, params_type> rule_context;
         typedef x3::context<rule_context_tag, rule_context> context_type;
-        typedef x3::reference<any_parser> reference;
+        typedef x3::reference<any_parser const> reference;
         static bool const has_attribute =
             !is_same<attribute_type, unused_type>::value;
         static bool const handles_container =
