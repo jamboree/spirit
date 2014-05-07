@@ -26,12 +26,12 @@ struct fun_action
     }
 };
 
-//auto fail =
-//    [](auto& ctx, int attr)
-//    {
-//        x3::_pass(ctx) = false;
-//    }
-//;
+auto fail =
+    [](auto& ctx, int attr)
+    {
+        x3::_pass(ctx) = false;
+    }
+;
 
 struct setnext
 {
@@ -78,13 +78,13 @@ int main()
 
     BOOST_TEST(x == (42*5));
 
-//    {
-//       std::string input("1234 6543");
-//       char next = '\0';
-//       BOOST_TEST(x3::phrase_parse(input.begin(), input.end(),
-//          x3::int_[fail] | x3::digit[setnext(next)], x3::space));
-//       BOOST_TEST(next == '1');
-//    }
+    {
+       std::string input("1234 6543");
+       char next = '\0';
+       BOOST_TEST(x3::phrase_parse(input.begin(), input.end(),
+          x3::int_[fail] | x3::digit[setnext(next)], x3::space));
+       BOOST_TEST(next == '1');
+    }
 
     return boost::report_errors();
 }

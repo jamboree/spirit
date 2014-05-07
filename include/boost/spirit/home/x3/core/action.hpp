@@ -170,7 +170,7 @@ namespace boost { namespace spirit { namespace x3
             attribute_type;
             
             using arity = detail::action_arity<action_type const
-              , x3::context<parse_pass_context_tag, bool, Context>
+              , x3::context<parse_pass_context_tag, bool, Context> const&
               , attribute_type>;
 
             static_assert(arity::value != -1, "invalid action");
