@@ -21,7 +21,7 @@
 //~ #include <boost/spirit/home/x3/directive/no_case.hpp>
 #include <boost/spirit/home/x3/directive/omit.hpp>
 #include <boost/spirit/home/x3/directive/raw.hpp>
-//~ #include <boost/spirit/home/x3/directive/repeat.hpp>
+#include <boost/spirit/home/x3/directive/repeat.hpp>
 #include <boost/spirit/home/x3/directive/skip.hpp>
 #include <boost/spirit/home/x3/directive/locals.hpp>
 #include <boost/spirit/home/x3/directive/seek.hpp>
