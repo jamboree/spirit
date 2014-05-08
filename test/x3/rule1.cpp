@@ -16,6 +16,50 @@
 #include <iostream>
 #include "test.hpp"
 
+namespace x3 = boost::spirit::x3;
+
+namespace g
+{
+    using boost::spirit::x3::lit;
+
+    auto a = lit('a');
+    auto b = lit('b');
+    auto c = lit('c');
+   
+    x3::rule<class r> r;
+    auto const r_def = *(a | b | c);
+    BOOST_SPIRIT_DEFINE(r, r_def);   // associates r with r_def
+   
+    auto const r_def2  = (a | b) >> (r | b);
+    x3::rule<class r2> r2;
+    BOOST_SPIRIT_DEFINE(r2, r_def2); // associates r2 with r_def2
+   
+    x3::rule<class r3> r3;
+    auto const r_def3  = *(a | b | c);
+    BOOST_SPIRIT_DEFINE(r3, r_def3); // associates r3 with r_def3
+   
+    x3::rule<class r4> r4;
+    auto const r_def4  = (a | b) >> (r4 | b);
+    BOOST_SPIRIT_DEFINE(r4, r_def4); // associates r4 with r_def4
+   
+    x3::rule<class a_r> a_r;
+    x3::rule<class b_r> b_r;
+    x3::rule<class c_r> c_r;
+
+    auto const a_def = lit('a');
+    auto const b_def = lit('b');
+    auto const c_def = lit('c');
+
+    BOOST_SPIRIT_DEFINE(a_r, a_def);
+    BOOST_SPIRIT_DEFINE(b_r, b_def);
+    BOOST_SPIRIT_DEFINE(c_r, c_def);
+    
+    x3::rule<class r5> r5;
+    auto const r_def5 = (a | b) >> (r5 | c);
+    BOOST_SPIRIT_DEFINE(r5, r_def5);
+
+}
+
 int
 main()
 {
@@ -29,69 +73,40 @@ main()
     using boost::spirit::x3::unused_type;
     using boost::spirit::x3::phrase_parse;
     using boost::spirit::x3::skip_flag;
+    
+    using namespace g;
 
     { // basic tests
 
-        auto a = lit('a');
-        auto b = lit('b');
-        auto c = lit('c');
-        rule<class r> r;
-
         {
-            auto start =
-                r = *(a | b | c);
-
-            BOOST_TEST(test("abcabcacb", start));
+            BOOST_TEST(test("abcabcacb", r));
         }
 
         {
-            auto start =
-                r = (a | b) >> (r | b);
-
-            BOOST_TEST(test("aaaabababaaabbb", start));
-            BOOST_TEST(test("aaaabababaaabba", start, false));
+            BOOST_TEST(test("aaaabababaaabbb", r2));
+            BOOST_TEST(test("aaaabababaaabba", r2, false));
 
             // ignore the skipper!
-            BOOST_TEST(test("aaaabababaaabba", start, space, false));
+            BOOST_TEST(test("aaaabababaaabba", r2, space, false));
         }
     }
 
     { // basic tests w/ skipper
 
-        auto a = lit('a');
-        auto b = lit('b');
-        auto c = lit('c');
-        rule<class r> r;
-
         {
-            auto start =
-                r = *(a | b | c);
-
-            BOOST_TEST(test(" a b c a b c a c b ", start, space));
+            BOOST_TEST(test(" a b c a b c a c b ", r3, space));
         }
 
         {
-            auto start =
-                r = (a | b) >> (r | b);
-
-            BOOST_TEST(test(" a a a a b a b a b a a a b b b ", start, space));
-            BOOST_TEST(test(" a a a a b a b a b a a a b b a ", start, space, false));
+            BOOST_TEST(test(" a a a a b a b a b a a a b b b ", r4, space));
+            BOOST_TEST(test(" a a a a b a b a b a a a b b a ", r4, space, false));
         }
     }
 
     { // basic tests w/ skipper but no final post-skip
 
-        auto a = rule<class a>()
-            = lit('a');
-
-        auto b = rule<class b>()
-            = lit('b');
-
-        auto c = rule<class c>()
-            = lit('c');
-
         {
-            auto start = rule<class start>() = *(a | b) >> c;
+            auto start = *(a_r | b_r) >> c_r;
 
             char const *s1 = " a b a a b b a c ... "
               , *const e1 = s1 + std::strlen(s1);
@@ -101,20 +116,17 @@ main()
         }
 
         {
-            rule<class start> start;
-
-            auto p =
-                start = (a | b) >> (start | c);
             {
                 char const *s1 = " a a a a b a b a b a a a b b b c "
                   , *const e1 = s1 + std::strlen(s1);
-                BOOST_TEST(phrase_parse(s1, e1, p, space, skip_flag::post_skip)
+                BOOST_TEST(phrase_parse(s1, e1, r5, space, skip_flag::post_skip)
                   && s1 == e1);
             }
+            
             {
                 char const *s1 = " a a a a b a b a b a a a b b b c "
                   , *const e1 = s1 + std::strlen(s1);
-                BOOST_TEST(phrase_parse(s1, e1, p, space, skip_flag::dont_post_skip)
+                BOOST_TEST(phrase_parse(s1, e1, r5, space, skip_flag::dont_post_skip)
                   && s1 == e1 - 1);
             }
         }
