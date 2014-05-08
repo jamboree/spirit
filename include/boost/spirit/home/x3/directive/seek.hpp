@@ -25,17 +25,14 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            for (Iterator it(first); ; ++it)
+            Iterator it(first);
+            for ( ; !subject.parse(it, last, context, attr); ++it)
             {
-                if (subject.parse(it, last, context, attr))
-                {
-                    first = it;
-                    return true;
-                }
-                // fail only after subject fails & no input
                 if (it == last)
                     return false;
             }
+            first = it;
+            return true;
         }
         
         template <typename Stepper>
@@ -51,17 +48,15 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr, Stepper const& stepper) const
         {
             static_assert(traits::is_parser<Stepper>::value, "invalid stepper");
-            for (Iterator it(first); ; )
+            
+            Iterator it(first);
+            while (!subject.parse(it, last, context, attr))
             {
-                if (subject.parse(it, last, context, attr))
-                {
-                    first = it;
-                    return true;
-                }
-                // fail only after subject & stepper fail
                 if (!stepper.parse(it, last, context, unused))
                     return false;
             }
+            first = it;
+            return true;
         }
     };
     
