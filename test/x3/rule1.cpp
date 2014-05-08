@@ -16,48 +16,39 @@
 #include <iostream>
 #include "test.hpp"
 
-namespace x3 = boost::spirit::x3;
 
 namespace g
 {
-    using boost::spirit::x3::lit;
+    namespace x3 = boost::spirit::x3;
+    using x3::lit;
 
     auto a = lit('a');
     auto b = lit('b');
     auto c = lit('c');
    
     x3::rule<class r> r;
-    auto const r_def = *(a | b | c);
-    BOOST_SPIRIT_DEFINE(r, r_def);   // associates r with r_def
+    BOOST_SPIRIT_DEFINE(r, *(a | b | c));
    
-    auto const r_def2  = (a | b) >> (r | b);
     x3::rule<class r2> r2;
-    BOOST_SPIRIT_DEFINE(r2, r_def2); // associates r2 with r_def2
+    BOOST_SPIRIT_DEFINE(r2, (a | b) >> (r | b));
    
     x3::rule<class r3> r3;
-    auto const r_def3  = *(a | b | c);
-    BOOST_SPIRIT_DEFINE(r3, r_def3); // associates r3 with r_def3
+    BOOST_SPIRIT_DEFINE(r3, *(a | b | c));
    
     x3::rule<class r4> r4;
-    auto const r_def4  = (a | b) >> (r4 | b);
-    BOOST_SPIRIT_DEFINE(r4, r_def4); // associates r4 with r_def4
+    BOOST_SPIRIT_DEFINE(r4, (a | b) >> (r4 | b));
    
     x3::rule<class a_r> a_r;
     x3::rule<class b_r> b_r;
     x3::rule<class c_r> c_r;
 
-    auto const a_def = lit('a');
-    auto const b_def = lit('b');
-    auto const c_def = lit('c');
-
-    BOOST_SPIRIT_DEFINE(a_r, a_def);
-    BOOST_SPIRIT_DEFINE(b_r, b_def);
-    BOOST_SPIRIT_DEFINE(c_r, c_def);
+    BOOST_SPIRIT_DEFINE(a_r, lit('a'));
+    BOOST_SPIRIT_DEFINE(b_r, lit('b'));
+    BOOST_SPIRIT_DEFINE(c_r, lit('c'));
     
     x3::rule<class r5> r5;
     auto const r_def5 = (a | b) >> (r5 | c);
     BOOST_SPIRIT_DEFINE(r5, r_def5);
-
 }
 
 int

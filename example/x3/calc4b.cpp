@@ -189,31 +189,32 @@ namespace client
         using x3::uint_;
         using x3::char_;
 
-        x3::rule<class expression, ast::program> const expression("expression");
-        x3::rule<class term, ast::program> const term("term");
-        x3::rule<class factor, ast::operand> const factor("factor");
+        x3::rule<class expression, ast::program> const expression = {};
+        x3::rule<class term, ast::program> const term = {};
+        x3::rule<class factor, ast::operand> const factor = {};
 
-        auto const calculator = x3::grammar("calculator",
-            expression =
-                term
-                >> *(   (char_('+') >> term)
-                    |   (char_('-') >> term)
-                    )
-                ,
+        BOOST_SPIRIT_DEFINE(expression,
+            term
+            >> *(   (char_('+') >> term)
+                |   (char_('-') >> term)
+                )
+        );
 
-            term =
-                factor
-                >> *(   (char_('*') >> factor)
-                    |   (char_('/') >> factor)
-                    )
-                ,
+        BOOST_SPIRIT_DEFINE(term,
+            factor
+            >> *(   (char_('*') >> factor)
+                |   (char_('/') >> factor)
+                )
+        );
 
-            factor =
-                    uint_
-                |   '(' >> expression >> ')'
-                |   (char_('-') >> factor)
-                |   (char_('+') >> factor)
-            );
+        BOOST_SPIRIT_DEFINE(factor,
+                uint_
+            |   '(' >> expression >> ')'
+            |   (char_('-') >> factor)
+            |   (char_('+') >> factor)
+        );
+        
+        auto calculator = expression;
     }
 
     using calculator_grammar::calculator;

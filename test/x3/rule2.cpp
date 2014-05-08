@@ -16,27 +16,33 @@
 #include <iostream>
 #include "test.hpp"
 
+
+namespace g
+{
+    namespace x3 = boost::spirit::x3;
+    using namespace x3::ascii;
+
+    x3::rule<class a, char> const a = {};
+    BOOST_SPIRIT_DEFINE(a, alpha);
+    
+    x3::rule<class r1, std::string> const r1 = {};
+    BOOST_SPIRIT_DEFINE(r1, char_ >> *(',' >> char_));
+
+    x3::rule<class r2, std::string> const r2 = {};
+    BOOST_SPIRIT_DEFINE(r2, char_ >> char_ >> char_ >> char_ >> char_ >> char_);
+}
+
 int
 main()
 {
     using spirit_test::test_attr;
     using spirit_test::test;
-
-    using namespace boost::spirit::x3::ascii;
-    //~ using boost::spirit::x3::locals;
-    using boost::spirit::x3::rule;
-    using boost::spirit::x3::int_;
-    //~ using boost::spirit::x3::uint_;
-    //~ using boost::spirit::x3::fail;
-    //~ using boost::spirit::x3::on_error;
-    //~ using boost::spirit::x3::debug;
-    using boost::spirit::x3::lit;
-    using boost::spirit::x3::unused_type;
+    
+    using namespace g;
 
     { // context tests
 
         char ch;
-        auto a = rule<class a, char>() = alpha;
 
         // this semantic action requires both the context and attrubute
         auto f = [&](auto&, char attr){ ch = attr; };
@@ -60,7 +66,6 @@ main()
     { // auto rules tests
 
         char ch = '\0';
-        auto a = rule<class a, char>() = alpha;
         auto f = [&](char attr){ ch = attr; };
 
         BOOST_TEST(test("x", a[f]));
@@ -87,27 +92,19 @@ main()
         auto f = [&](std::string attr){ s = attr; };
 
         {
-            auto r = rule<class r, std::string>()
-                = char_ >> *(',' >> char_)
-                ;
-
-            BOOST_TEST(test("a,b,c,d,e,f", r[f]));
+            BOOST_TEST(test("a,b,c,d,e,f", r1[f]));
             BOOST_TEST(s == "abcdef");
         }
 
         {
-            auto r = rule<class r, std::string>()
-                = char_ >> *(',' >> char_);
             s.clear();
-            BOOST_TEST(test("a,b,c,d,e,f", r[f]));
+            BOOST_TEST(test("a,b,c,d,e,f", r1[f]));
             BOOST_TEST(s == "abcdef");
         }
 
         {
-            auto r = rule<class r, std::string>()
-                = char_ >> char_ >> char_ >> char_ >> char_ >> char_;
             s.clear();
-            BOOST_TEST(test("abcdef", r[f]));
+            BOOST_TEST(test("abcdef", r2[f]));
             BOOST_TEST(s == "abcdef");
         }
     }

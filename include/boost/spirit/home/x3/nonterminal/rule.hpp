@@ -45,30 +45,11 @@ namespace boost { namespace spirit { namespace x3
     };
 
     template <typename Context>
-    inline auto
-    _val(Context const& context)
+    inline auto _val(Context const& context)
     -> decltype(x3::get<rule_context_tag>(context).val())
     {
         return x3::get<rule_context_tag>(context).val();
     }
-
-
-#define BOOST_SPIRIT_DEFINE(id, def)                                                \
-     template <typename Attribute, typename Iterator, typename Context              \
-         , typename ActualAttribute, typename AttributePtr>                         \
-     inline bool parse_rule(                                                        \
-         boost::spirit::x3::rule<class id, Attribute> const& r                      \
-       , Iterator& first, Iterator const& last                                      \
-       , Context const& context, ActualAttribute& attr                              \
-       , AttributePtr*& attr_ptr)                                                   \
-   {                                                                                \
-         return boost::spirit::x3::detail::parse_rule<Attribute, class id>          \
-             ::call_rule_definition(                                                \
-                 def, #id, first, last, context                                     \
-               , attr, attr_ptr                                                     \
-               , boost::mpl::true_());                                              \
-   }                                                                                \
-   /***/
 
     template <typename ID, typename Attribute>
     struct rule : parser<rule<ID, Attribute>>
@@ -88,7 +69,7 @@ namespace boost { namespace spirit { namespace x3
             // In such case, we will not set up a rule-context again.
             return parse_rule(*this, first, last, context, attr, attr_ctx.attr_ptr);
         }
-        
+
         template <typename Iterator, typename Context, typename Attribute_>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr, unused_type) const
@@ -103,7 +84,7 @@ namespace boost { namespace spirit { namespace x3
             auto this_context = make_context<ID>(*this, rule_ctx2);
             return parse_rule(*this, first, last, this_context, attr, r_context.attr_ptr);
         }
-        
+
         template <typename Iterator, typename Context, typename Attribute_>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr) const
@@ -111,12 +92,12 @@ namespace boost { namespace spirit { namespace x3
             return parse(first, last, context, attr, x3::get<rule_context_with_id_tag<ID>>(context));
         }
     };
-    
+
     namespace traits
     {
         template <typename T, typename Enable = void>
         struct is_rule : mpl::false_ {};
-    
+
         template <typename ID, typename Attribute>
         struct is_rule<rule<ID, Attribute>> : mpl::true_ {};
     }
@@ -130,6 +111,24 @@ namespace boost { namespace spirit { namespace x3
             return r.name;
         }
     };
+
+#define BOOST_SPIRIT_DEFINE(id, def)                                                \
+     template <typename Attribute, typename Iterator, typename Context              \
+         , typename ActualAttribute, typename AttributePtr>                         \
+     inline bool parse_rule(                                                        \
+         boost::spirit::x3::rule<class id, Attribute> const& r                      \
+       , Iterator& first, Iterator const& last                                      \
+       , Context const& context, ActualAttribute& attr                              \
+       , AttributePtr*& attr_ptr)                                                   \
+   {                                                                                \
+         return boost::spirit::x3::detail::parse_rule<Attribute, class id>          \
+             ::call_rule_definition(                                                \
+                 def, #id, first, last, context                                     \
+               , attr, attr_ptr                                                     \
+               , boost::mpl::true_());                                              \
+   }                                                                                \
+   /***/
+
 }}}
 
 #endif
