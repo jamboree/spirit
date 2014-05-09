@@ -193,37 +193,27 @@ namespace client
         x3::rule<class term, ast::program> const term("term");
         x3::rule<class factor, ast::operand> const factor("factor");
 
-        auto const expression_def =
-            term
-            >> *(   (char_('+') >> term)
-                |   (char_('-') >> term)
-                )
-            ;
-
-        auto const term_def =
-            factor
-            >> *(   (char_('*') >> factor)
-                |   (char_('/') >> factor)
-                )
-            ;
-
-        auto const factor_def =
-                uint_
-            |   '(' >> expression >> ')'
-            |   (char_('-') >> factor)
-            |   (char_('+') >> factor)
-            ;
-
-        auto const calculator = x3::grammar(
-                "calculator"
-              , expression = expression_def
-              , term = term_def
-              , factor = factor_def
-            );
+        BOOST_SPIRIT_DEFINES
+        (
+            expression =
+                term
+                >> *(   (char_('+') >> term)
+                    |   (char_('-') >> term)
+                    )
+          , term =
+                factor
+                >> *(   (char_('*') >> factor)
+                    |   (char_('/') >> factor)
+                    )
+          , factor =
+                    uint_
+                |   '(' >> expression >> ')'
+                |   (char_('-') >> factor)
+                |   (char_('+') >> factor)
+        )
     }
 
-    using calculator_grammar::calculator;
-
+    auto const calculator = calculator_grammar::expression;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
