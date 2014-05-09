@@ -211,9 +211,11 @@ namespace client
                 |   (char_('-') >> factor)
                 |   (char_('+') >> factor)
         )
+        
+        auto calculator = expression;
     }
 
-    auto const calculator = calculator_grammar::expression;
+    using calculator_grammar::calculator;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
