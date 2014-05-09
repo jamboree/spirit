@@ -20,15 +20,15 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
           : First(f), Rest(rs)...
         {}
         
-        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
-        static rule_definition<ID, RHS, Attribute, Params, P> const&
-        get_impl(rule_definition<ID, RHS, Attribute, Params, P> const& def)
+        template <typename ID, typename Attribute, typename RHS, bool P>
+        static rule_definition<rule<ID, Attribute>, RHS, P> const&
+        get_impl(rule_definition<rule<ID, Attribute>, RHS, P> const& def)
         {
             return def;
         }
         
-        template <typename ID, typename RHS, typename Attribute, typename Params, bool P>
-        static mpl::true_ has_impl(rule_definition<ID, RHS, Attribute, Params, P> const&);
+        template <typename ID, typename Attribute, typename RHS, bool P>
+        static mpl::true_ has_impl(rule_definition<rule<ID, Attribute>, RHS, P> const&);
         
         template <typename ID>
         static mpl::false_ has_impl(...);

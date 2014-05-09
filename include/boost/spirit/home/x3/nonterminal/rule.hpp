@@ -14,8 +14,10 @@
 #include <boost/spirit/home/x3/nonterminal/detail/rule.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/decompose_attribute.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/spirit/home/x3/support/context.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
 
 #if !defined(BOOST_SPIRIT_X3_NO_RTTI)
 #include <typeinfo>
@@ -69,17 +71,17 @@ namespace boost { namespace spirit { namespace x3
         return x3::get<rule_context_tag>(context).params();
     }
 
-    template <typename ID, typename RHS, typename Attribute, typename Params, bool explicit_attribute_propagation_>
-    struct rule_definition : parser<rule_definition<ID, RHS, Attribute, Params, explicit_attribute_propagation_>>
+    template <typename LHS, typename RHS, bool explicit_attribute_propagation_>
+    struct rule_definition : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
     {
-        typedef rule_definition<ID, RHS, Attribute, Params, explicit_attribute_propagation_> this_type;
-        typedef ID id;
+        typedef rule_definition<LHS, RHS, explicit_attribute_propagation_> this_type;
+        typedef LHS lhs_type;
         typedef RHS rhs_type;
-        typedef Attribute attribute_type;
-        static bool const has_attribute =
-            !is_same<Attribute, unused_type>::value;
-        static bool const handles_container =
-            traits::is_container<Attribute>::value;
+        typedef typename LHS::id id;
+        typedef typename LHS::attribute_type attribute_type;
+        typedef typename LHS::params_type params_type;
+        static bool const has_attribute = LHS::has_attribute;
+        static bool const handles_container = LHS::handles_container;
         static bool const caller_is_pass_through_unary = true;
         static bool const explicit_attribute_propagation =
             explicit_attribute_propagation_;
@@ -92,16 +94,16 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute_& attr, Ts&&... ts) const
         {
             static_assert(
-                detail::check_args<Params, Ts...>::value
+                detail::check_args<params_type, Ts...>::value
               , "args/params not matched");
             
-            Params params(std::forward<Ts>(ts)...);
-            rule_context<Attribute, Params> r_context;
-            auto rule_ctx1 = make_context<rule_context_with_id_tag<ID>>(r_context, context);
+            params_type params(std::forward<Ts>(ts)...);
+            rule_context<attribute_type, params_type> r_context;
+            auto rule_ctx1 = make_context<rule_context_with_id_tag<id>>(r_context, context);
             auto rule_ctx2 = make_context<rule_context_tag>(r_context, rule_ctx1);
-            auto this_context = make_context<ID>(*this, rule_ctx2);
+            auto this_context = make_context<id>(*this, rule_ctx2);
 
-            return detail::parse_rule<attribute_type, Params, ID>
+            return detail::parse_rule<attribute_type, params_type, id>
                 ::call_rule_definition(
                     rhs, name, first, last, this_context
                   , attr, params, r_context.attr_ptr, r_context.params_ptr
@@ -111,7 +113,27 @@ namespace boost { namespace spirit { namespace x3
         RHS rhs;
         char const* name;
     };
-
+    
+    struct use_grammar_tag {};
+    struct use_global_tag : use_grammar_tag {};
+    
+    template <typename Rule, typename Iterator, typename Context
+        , typename Attribute_, typename... Ts>
+    inline bool parse_rule(use_grammar_tag, Rule const& r
+        , Iterator& first, Iterator const& last
+        , Context const& context, Attribute_& attr, Ts&&... ts)
+    {
+        typedef typename Rule::attribute_type attribute_type;
+        typedef typename Rule::params_type params_type;
+        typedef typename Rule::id id;
+        return detail::parse_rule<attribute_type, params_type, id>
+            ::call_from_rule(
+                x3::get<id>(context), r.name
+              , first, last, context, attr
+              , x3::get<rule_context_with_id_tag<id>>(context)
+              , std::forward<Ts>(ts)...);
+    }
+    
     template <typename ID, typename Attribute = unused_type>
     struct rule : parser<rule<ID, Attribute>>
     {
@@ -132,16 +154,14 @@ namespace boost { namespace spirit { namespace x3
 #endif
 
         template <typename RHS>
-        rule_definition<
-            ID, typename extension::as_parser<RHS>::value_type, attribute_type, params_type, false>
+        rule_definition<rule, typename extension::as_parser<RHS>::value_type, false>
         operator=(RHS const& rhs) const
         {
             return {as_parser(rhs), name};
         }
 
         template <typename RHS>
-        rule_definition<
-            ID, typename extension::as_parser<RHS>::value_type, attribute_type, params_type, true>
+        rule_definition<rule, typename extension::as_parser<RHS>::value_type, true>
         operator%=(RHS const& rhs) const
         {
             return {as_parser(rhs), name};
@@ -151,11 +171,8 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr, Ts&&... ts) const
         {
-            return detail::parse_rule<attribute_type, params_type, ID>::call_from_rule(
-                x3::get<ID>(context), name
-              , first, last, context, attr
-              , x3::get<rule_context_with_id_tag<ID>>(context)
-              , std::forward<Ts>(ts)...);
+            return parse_rule(use_global_tag(), *this, first, last, context
+                , attr, std::forward<Ts>(ts)...);
         }
 
         char const* name;
@@ -169,8 +186,8 @@ namespace boost { namespace spirit { namespace x3
         template <typename ID, typename Attribute>
         struct is_rule<rule<ID, Attribute>> : mpl::true_ {};
         
-        template <typename ID, typename RHS, typename Attribute, typename Params, bool explicit_attribute_propagation>
-        struct is_rule<rule_definition<ID, RHS, Attribute, Params, explicit_attribute_propagation>>
+        template <typename LHS, typename RHS, bool explicit_attribute_propagation>
+        struct is_rule<rule_definition<LHS, RHS, explicit_attribute_propagation>>
           : mpl::true_ {};
     }
 
@@ -183,6 +200,32 @@ namespace boost { namespace spirit { namespace x3
             return r.name;
         }
     };
+    
+#define BOOST_SPIRIT_DEFINES_(r, data, def)                                     \
+    template <typename Iterator, typename Context                               \
+        , typename Attribute_, typename... Ts>                                  \
+    inline bool parse_rule(::boost::spirit::x3::use_global_tag                  \
+        , typename decltype(def)::lhs_type const& r__                           \
+        , Iterator& first__, Iterator const& last__, Context const& context__   \
+        , Attribute_& attr__, Ts&&... ts__)                                     \
+    {                                                                           \
+        typedef decltype(def) rule_def_t;                                       \
+        typedef typename rule_def_t::attribute_type attribute_type;             \
+        typedef typename rule_def_t::params_type params_type;                   \
+        typedef typename rule_def_t::id id;                                     \
+        static auto rule_def(def);                                              \
+        return ::boost::spirit::x3::detail::                                    \
+            parse_rule<attribute_type, params_type, id>::call_from_rule(        \
+                rule_def, r__.name                                              \
+              , first__, last__, context__, attr__                              \
+              , ::boost::spirit::x3::get<::boost::spirit::x3::                  \
+                    rule_context_with_id_tag<id>>(context__)                    \
+              , std::forward<Ts>(ts__)...);                                     \
+    }
+    /***/
+#define BOOST_SPIRIT_DEFINES(...) BOOST_PP_SEQ_FOR_EACH(                        \
+    BOOST_SPIRIT_DEFINES_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+    /***/
 }}}
 
 #endif
