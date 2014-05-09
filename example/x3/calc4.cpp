@@ -193,7 +193,7 @@ namespace client
         x3::rule<class term, ast::program> const term("term");
         x3::rule<class factor, ast::operand> const factor("factor");
 
-        BOOST_SPIRIT_DEFINES
+        BOOST_SPIRIT_DEFINE
         (
             expression =
                 term
@@ -207,7 +207,7 @@ namespace client
                     )
           , factor =
                     uint_
-                |   '(' >> expression >> ')'
+                |   "(" >> expression >> ')'
                 |   (char_('-') >> factor)
                 |   (char_('+') >> factor)
         )
