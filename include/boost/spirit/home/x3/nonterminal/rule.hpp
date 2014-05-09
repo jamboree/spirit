@@ -56,16 +56,14 @@ namespace boost { namespace spirit { namespace x3
     };
 
     template <typename Context>
-    inline auto
-    _val(Context const& context)
+    inline auto _val(Context const& context)
     -> decltype(x3::get<rule_context_tag>(context).val())
     {
         return x3::get<rule_context_tag>(context).val();
     }
     
     template <typename Context>
-    inline auto
-    _params(Context const& context)
+    inline auto _params(Context const& context)
     -> decltype(x3::get<rule_context_tag>(context).params())
     {
         return x3::get<rule_context_tag>(context).params();
@@ -113,27 +111,7 @@ namespace boost { namespace spirit { namespace x3
         RHS rhs;
         char const* name;
     };
-    
-    struct use_grammar_tag {};
-    struct use_global_tag : use_grammar_tag {};
-    
-    template <typename Rule, typename Iterator, typename Context
-        , typename Attribute_, typename... Ts>
-    inline bool parse_rule(use_grammar_tag, Rule const& r
-        , Iterator& first, Iterator const& last
-        , Context const& context, Attribute_& attr, Ts&&... ts)
-    {
-        typedef typename Rule::attribute_type attribute_type;
-        typedef typename Rule::params_type params_type;
-        typedef typename Rule::id id;
-        return detail::parse_rule<attribute_type, params_type, id>
-            ::call_from_rule(
-                x3::get<id>(context), r.name
-              , first, last, context, attr
-              , x3::get<rule_context_with_id_tag<id>>(context)
-              , std::forward<Ts>(ts)...);
-    }
-    
+
     template <typename ID, typename Attribute = unused_type>
     struct rule : parser<rule<ID, Attribute>>
     {
@@ -167,12 +145,27 @@ namespace boost { namespace spirit { namespace x3
             return {as_parser(rhs), name};
         }
 
+        template <typename Iterator, typename Context
+            , typename Attribute_, typename... Ts>
+        friend inline typename enable_if_c<!is_same<typename Context::template
+            get_result<mpl::identity<ID>>::type, unused_type>::value, bool>::type
+        parse_rule(rule const& r, Iterator& first, Iterator const& last
+            , Context const& context, Attribute_& attr, Ts&&... ts)
+        {
+            return detail::parse_rule<attribute_type, params_type, ID>
+                ::call_from_rule(
+                    x3::get<ID>(context), r.name
+                  , first, last, context, attr
+                  , x3::get<rule_context_with_id_tag<ID>>(context)
+                  , std::forward<Ts>(ts)...);
+        }
+
         template <typename Iterator, typename Context, typename Attribute_, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr, Ts&&... ts) const
         {
-            return parse_rule(use_global_tag(), *this, first, last, context
-                , attr, std::forward<Ts>(ts)...);
+            return parse_rule(*this, first, last, context, attr
+                , std::forward<Ts>(ts)...);
         }
 
         char const* name;
@@ -204,8 +197,7 @@ namespace boost { namespace spirit { namespace x3
 #define BOOST_SPIRIT_DEFINES_(r, data, def)                                     \
     template <typename Iterator, typename Context                               \
         , typename Attribute_, typename... Ts>                                  \
-    inline bool parse_rule(::boost::spirit::x3::use_global_tag                  \
-        , typename decltype(def)::lhs_type const& r__                           \
+    inline bool parse_rule(typename decltype(def)::lhs_type const& r__          \
         , Iterator& first__, Iterator const& last__, Context const& context__   \
         , Attribute_& attr__, Ts&&... ts__)                                     \
     {                                                                           \
