@@ -31,6 +31,10 @@ namespace boost { namespace spirit { namespace x3
         struct traits
         {
             static bool const handles_container = true;
+            
+            template <typename Context>
+            using attribute = x3::traits::build_container<
+                typename x3::traits::attribute_of<Subject, Context>::type>;
         };
         
         template <typename T>
@@ -119,12 +123,5 @@ namespace boost { namespace spirit { namespace x3
 
     repeat_directive const repeat{};
 }}}
-
-namespace boost { namespace spirit { namespace x3 { namespace traits
-{
-    template <typename Subject, typename Context>
-    struct attribute_of<directive_parser<repeat_directive, Subject>, Context>
-      : build_container<typename attribute_of<Subject, Context>::type> {};
-}}}}
 
 #endif

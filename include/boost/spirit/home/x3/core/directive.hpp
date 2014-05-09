@@ -63,7 +63,6 @@ namespace boost { namespace spirit { namespace x3
     template <typename Directive, typename... Ts>
     struct directive_caller
     {
-        typedef Directive directive_type;
         typedef detail::transform_params<Directive, void, Ts...> transform;
         typedef typename transform::tag transform_tag;
         static bool const is_pass_through_unary =
@@ -217,75 +216,86 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     //--------------------------------------------------------------------------
     namespace detail
     {
+        template <typename Sig>
+        struct caller_type;
+        
+        template <typename R, typename... Ts>
+        struct caller_type<R(Ts...)>
+        {
+            typedef R type;
+        };
+        
         // attribute_of
-        template <typename DirectiveCaller, typename Subject, typename Context, typename Enable = void>
-        struct default_caller_attribute_of
-          : attribute_of<directive_parser<
-                typename DirectiveCaller::directive_type, Subject>, Context> {};
+        template <typename DirectiveCall, typename Subject, typename Context, typename Enable = void>
+        struct directive_caller_attribute_of
+          : attribute_of<directive_parser<typename
+                caller_type<DirectiveCall>::type, Subject>, Context> {};
 
         template <typename Directive, typename... Ts, typename Subject, typename Context>
-        struct default_caller_attribute_of<directive_caller<Directive, Ts...>
+        struct directive_caller_attribute_of<Directive(Ts...)
             , Subject, Context, typename disable_if_substitution_failure<
-                typename Directive::template caller_traits<Subject, x3::detail
-                    ::result_of_eval<Ts, Context>...>::attribute_type>::type>
-          : mpl::identity<typename Directive::template caller_traits<Subject,
-                x3::detail::result_of_eval<Ts, Context>...>::attribute_type> {};
+                typename Directive::template caller_traits<Subject, Ts...>::
+                    attribute_type>::type>
+          : mpl::identity<typename Directive::template caller_traits<Subject
+                , Ts...>::attribute_type> {};
 
         template <typename Directive, typename... Ts, typename Subject, typename Context>
-        struct default_caller_attribute_of<directive_caller<Directive, Ts...>
+        struct directive_caller_attribute_of<Directive(Ts...)
             , Subject, Context, typename disable_if_substitution_failure<
-                typename Directive::template caller_traits<Subject,
-                    x3::detail::result_of_eval<Ts, Context>...>::
-                        template attribute<Context>::type>::type>
-          : Directive::template caller_traits<Subject, x3::detail::
-                result_of_eval<Ts, Context>...>::template attribute<Context> {};
+                typename Directive::template caller_traits<Subject, Ts...>::
+                    template attribute<Context>::type>::type>
+          : Directive::template caller_traits<Subject, Ts...>::
+                template attribute<Context> {};
 
         // has_attribute
-        template <typename DirectiveCaller, typename Subject, typename Context, typename Enable = void>
-        struct default_caller_has_attribute
-          : has_attribute<directive_parser<
-                typename DirectiveCaller::directive_type, Subject>, Context> {};
+        template <typename DirectiveCall, typename Subject, typename Context, typename Enable = void>
+        struct directive_caller_has_attribute
+          : has_attribute<directive_parser<typename
+                caller_type<DirectiveCall>::type, Subject>, Context> {};
 
         template <typename Directive, typename... Ts, typename Subject, typename Context>
-        struct default_caller_has_attribute<directive_caller<Directive, Ts...>
+        struct directive_caller_has_attribute<Directive(Ts...)
             , Subject, Context, typename disable_if_substitution_failure<
-                mpl::bool_<Directive::template caller_traits<Subject, x3::detail
-                    ::result_of_eval<Ts, Context>...>::has_attribute>>::type>
-          : mpl::bool_<Directive::template caller_traits<Subject, x3::detail::
-                result_of_eval<Ts, Context>...>::has_attribute> {};
+                mpl::bool_<Directive::template caller_traits<Subject, Ts...>::
+                    has_attribute>>::type>
+          : mpl::bool_<Directive::template caller_traits<Ts...>::
+                has_attribute> {};
 
         // handles_container
-        template <typename DirectiveCaller, typename Subject, typename Context, typename Enable = void>
-        struct default_caller_handles_container
-          : handles_container<directive_parser<
-                typename DirectiveCaller::directive_type, Subject>, Context> {};
+        template <typename DirectiveCall, typename Subject, typename Context, typename Enable = void>
+        struct directive_caller_handles_container
+          : handles_container<directive_parser<typename
+                caller_type<DirectiveCall>::type, Subject>, Context> {};
 
         template <typename Directive, typename... Ts, typename Subject, typename Context>
-        struct default_caller_handles_container<directive_caller<Directive, Ts...>
+        struct directive_caller_handles_container<Directive(Ts...)
             , Subject, Context, typename disable_if_substitution_failure<
-                mpl::bool_<Directive::template caller_traits<Subject, x3::detail
-                    ::result_of_eval<Ts, Context>...>::handles_container>>::type>
-          : mpl::bool_<Directive::template caller_traits<Subject, x3::detail::
-                result_of_eval<Ts, Context>...>::handles_container> {};
+                mpl::bool_<Directive::template caller_traits<Subject, Ts...>::
+                    handles_container>>::type>
+          : mpl::bool_<Directive::template caller_traits<Subject, Ts...>::
+                handles_container> {};
     }
 
     template <typename Directive, typename... Ts, typename Subject, typename Context>
     struct attribute_of<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
-      : detail::default_caller_attribute_of<
-            directive_caller<Directive, Ts...>, Subject, Context> {};
+      : detail::directive_caller_attribute_of<
+            Directive(x3::detail::result_of_eval<Ts, Context>...)
+          , Subject, Context> {};
 
     template <typename Directive, typename... Ts, typename Subject, typename Context>
     struct has_attribute<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
-      : detail::default_caller_has_attribute<
-            directive_caller<Directive, Ts...>, Subject, Context> {};
+      : detail::directive_caller_has_attribute<
+            Directive(x3::detail::result_of_eval<Ts, Context>...)
+          , Subject, Context> {};
 
     template <typename Directive, typename... Ts, typename Subject, typename Context>
     struct handles_container<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
-      : detail::default_caller_handles_container<
-            directive_caller<Directive, Ts...>, Subject, Context> {};
+      : detail::directive_caller_handles_container<
+            Directive(x3::detail::result_of_eval<Ts, Context>...)
+          , Subject, Context> {};
 }}}}
 
 
