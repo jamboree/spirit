@@ -13,7 +13,6 @@
 
 #include <boost/spirit/home/x3/nonterminal/detail/rule.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/decompose_attribute.hpp>
-#include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -25,10 +24,45 @@
 
 namespace boost { namespace spirit { namespace x3
 {
+    template <typename ID>
+    struct identity {};
+
+    struct rule_context_tag;
+
+    template <typename Attribute, typename Params>
+    struct rule_context
+    {
+        Attribute& val() const
+        {
+            return *attr_ptr;
+        }
+
+        Params& params() const
+        {
+            return *params_ptr;
+        }
+        
+        Attribute* attr_ptr;
+        Params* params_ptr;
+    };
+
+    template <typename Context>
+    inline auto _val(Context const& context)
+    -> decltype(x3::get<rule_context_tag>(context).val())
+    {
+        return x3::get<rule_context_tag>(context).val();
+    }
+    
+    template <typename Context>
+    inline auto _params(Context const& context)
+    -> decltype(x3::get<rule_context_tag>(context).params())
+    {
+        return x3::get<rule_context_tag>(context).params();
+    }
+    
     template <typename LHS, typename RHS, bool explicit_attribute_propagation_>
     struct rule_definition : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
     {
-        typedef rule_definition<LHS, RHS, explicit_attribute_propagation_> this_type;
         typedef LHS lhs_type;
         typedef RHS rhs_type;
         typedef typename LHS::id id;
@@ -41,22 +75,28 @@ namespace boost { namespace spirit { namespace x3
             explicit_attribute_propagation_;
 
         rule_definition(RHS rhs, char const* name)
-          : rhs(rhs), name(name) {}
+          : rhs(std::move(rhs)), name(name) {}
 
-        template <typename Iterator, typename Context, typename Attribute_, typename... Ts>
+        template <typename Iterator, typename Context, typename Attribute, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
-          , Context const& context, Attribute_& attr, Ts&&... ts) const
+          , Context const& context, Attribute& attr, Ts&&... ts) const
         {
-            static_assert(
-                detail::check_args<params_type, Ts...>::value
-              , "args/params not matched");
-
-            params_type params(std::forward<Ts>(ts)...);
-
-            return detail::parse_rule<id, attribute_type>::call_rule_definition(
-                    rhs, name, first, last, attr, params
-                  , x3::get<skipper_tag>(context)
-                  , mpl::bool_<explicit_attribute_propagation>());
+            return detail::parse_rule_main(*this, first, last, context, attr
+                , std::forward<Ts>(ts)...);
+        }
+          
+        template <typename Iterator, typename Skipper>
+        friend bool parse_rule(rule_definition const& r
+          , Iterator& first, Iterator const& last
+          , attribute_type& attr, params_type& params, Skipper const& skipper)
+        {
+            rule_context<attribute_type, params_type>
+                r_context{boost::addressof(attr), &params};
+            auto context(make_context<rule_context_tag>(r_context));
+            
+            return detail::parse_rule<id>::parse_rhs(r.rhs, first, last
+              , make_context<skipper_tag>(skipper, context), attr
+              , mpl::bool_<(RHS::has_action && !explicit_attribute_propagation_)>());
         }
 
         RHS rhs;
@@ -96,26 +136,11 @@ namespace boost { namespace spirit { namespace x3
             return {as_parser(rhs), name};
         }
 
-//        template <typename Iterator, typename Context
-//            , typename Attribute_, typename... Ts>
-//        friend inline typename enable_if_c<!is_same<typename Context::template
-//            get_result<mpl::identity<ID>>::type, unused_type>::value, bool>::type
-//        parse_rule(rule const& r, Iterator& first, Iterator const& last
-//            , Context const& context, Attribute_& attr, Ts&&... ts)
-//        {
-//            return detail::parse_rule<attribute_type, params_type, ID>
-//                ::call_from_rule(
-//                    x3::get<ID>(context), r.name
-//                  , first, last, context, attr
-//                  , x3::get<rule_context_with_id_tag<ID>>(context)
-//                  , std::forward<Ts>(ts)...);
-//        }
-
         template <typename Iterator, typename Context, typename Attribute_, typename... Ts>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute_& attr, Ts&&... ts) const
         {
-            return parse_rule(*this, first, last, context, attr
+            return detail::parse_rule_main(*this, first, last, context, attr
                 , std::forward<Ts>(ts)...);
         }
 
@@ -150,19 +175,41 @@ namespace boost { namespace spirit { namespace x3
     /***/
 #define BOOST_SPIRIT_DEFINE_(r, data, def)                                      \
     auto const BOOST_SPIRIT_RULEDEF(__LINE__, r)(def);                          \
-    template <typename Iterator, typename Context                               \
-        , typename Attribute_, typename... Ts>                                  \
+    template <typename Iterator, typename Attribute                             \
+        , typename Params, typename Skipper>                                    \
     inline bool parse_rule(                                                     \
         decltype(BOOST_SPIRIT_RULEDEF(__LINE__, r))::lhs_type const& r_         \
-      , Iterator& first, Iterator const& last, Context const& context           \
-      , Attribute_& attr, Ts&&... ts)                                           \
+      , Iterator& first, Iterator const& last                                   \
+      , Attribute& attr, Params& params, Skipper const& skipper)                \
     {                                                                           \
-        return BOOST_SPIRIT_RULEDEF(__LINE__, r).parse(                         \
-            first, last, context, attr, std::forward<Ts>(ts)...);               \
+        return parse_rule(BOOST_SPIRIT_RULEDEF(__LINE__, r)                     \
+            , first, last, attr, params, skipper);                              \
     }
     /***/
 #define BOOST_SPIRIT_DEFINE(...) BOOST_PP_SEQ_FOR_EACH(                         \
     BOOST_SPIRIT_DEFINE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+    /***/
+#define BOOST_SPIRIT_DECLARE_(r, data, rule)                                    \
+    template <typename Iterator, typename Attribute                             \
+        , typename Params, typename Skipper>                                    \
+    bool parse_rule(rule const&, Iterator&, Iterator const&                     \
+        , Attribute&, Params&, Skipper const&);
+    /***/
+#define BOOST_SPIRIT_DECLARE(...) BOOST_PP_SEQ_FOR_EACH(                        \
+    BOOST_SPIRIT_DECLARE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+    /***/
+#define BOOST_SPIRIT_INSTANTIATE(iterator, ...)                                 \
+    template bool parse_rule<iterator                                           \
+        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::attribute_type      \
+        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::params_type         \
+        , decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                        \
+            , ::boost::spirit::x3::unused))>(                                   \
+            decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__)) const&             \
+          , iterator&, iterator const&                                          \
+          , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::attribute_type&   \
+          , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::params_type&      \
+          , decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                      \
+            , ::boost::spirit::x3::unused)) const&);
     /***/
 }}}
 

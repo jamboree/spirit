@@ -15,6 +15,7 @@
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
 #include <boost/spirit/home/x3/auxiliary/guard.hpp>
+#include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
 #include <boost/utility/addressof.hpp>
 
@@ -25,44 +26,8 @@
 namespace boost { namespace spirit { namespace x3
 {
     template <typename ID>
-    struct identity {};
-
-    struct rule_context_tag;
-
-    template <typename ID>
-    struct rule_context_with_id_tag;
-
-    template <typename Attribute, typename Params>
-    struct rule_context
-    {
-        Attribute& val() const
-        {
-            return *attr_ptr;
-        }
-
-        Params& params() const
-        {
-            return *params_ptr;
-        }
-        
-        Attribute* attr_ptr;
-        Params* params_ptr;
-    };
-
-    template <typename Context>
-    inline auto _val(Context const& context)
-    -> decltype(x3::get<rule_context_tag>(context).val())
-    {
-        return x3::get<rule_context_tag>(context).val();
-    }
+    struct identity;
     
-    template <typename Context>
-    inline auto _params(Context const& context)
-    -> decltype(x3::get<rule_context_tag>(context).params())
-    {
-        return x3::get<rule_context_tag>(context).params();
-    }
-
     struct parse_pass_context_tag;
     
     template <typename Iterator>
@@ -129,8 +94,52 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     {
         typedef identity<ID> type;
     };
+    
+    template <typename Rule, typename Iterator, typename Context, typename Attribute, typename... Ts>
+    bool parse_rule_main(Rule const& r, Iterator& first, Iterator const& last
+      , Context const& context, Attribute& attr, Ts&&... ts)
+    {
+        typedef typename Rule::attribute_type attribute_type;
+        typedef typename Rule::params_type params_type;
+        
+        static_assert(
+            check_args<params_type, Ts...>::value
+          , "args/params not matched");
+          
+        typedef traits::make_attribute<attribute_type, Attribute> make_attribute;
 
-    template <typename ID, typename Attribute>
+        // do down-stream transformation, provides attribute for
+        // rhs parser
+        typedef traits::transform_attribute<
+            typename make_attribute::type, attribute_type, parser_id>
+        transform;
+
+        typedef typename make_attribute::value_type value_type;
+        typedef typename transform::type transform_attr;
+        value_type made_attr = make_attribute::call(attr);
+        transform_attr attr_ = transform::pre(made_attr);
+        params_type params(std::forward<Ts>(ts)...);
+
+#if defined(BOOST_SPIRIT_X3_DEBUG)
+        context_debug<Iterator, typename make_attribute::value_type>
+            dbg(r.name, first, last, made_attr);
+#endif
+        // parse_rule is found by ADL
+        if (parse_rule(r, first, last, attr_, params, x3::get<skipper_tag>(context)))
+        {
+            // do up-stream transformation, this integrates the results
+            // back into the original attribute value, if appropriate
+            traits::post_transform(attr, attr_);
+
+#if defined(BOOST_SPIRIT_X3_DEBUG)
+            dbg.fail = false;
+#endif
+            return true;
+        }
+        return false;
+    }
+    
+    template <typename ID>
     struct parse_rule
     {
         template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
@@ -228,52 +237,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
           , mpl::true_)
         {
             return parse_rhs_main(rhs, first, last, context, unused);
-        }
-
-        template <typename RHS, typename Iterator
-            , typename ActualAttribute, typename Params
-            , typename Skipper, typename ExplicitAttrPropagation>
-        static bool call_rule_definition(
-            RHS const& rhs
-          , char const* rule_name
-          , Iterator& first, Iterator const& last, ActualAttribute& attr
-          , Params& params, Skipper const& skipper, ExplicitAttrPropagation)
-        {
-            typedef traits::make_attribute<Attribute, ActualAttribute> make_attribute;
-
-            // do down-stream transformation, provides attribute for
-            // rhs parser
-            typedef traits::transform_attribute<
-                typename make_attribute::type, Attribute, parser_id>
-            transform;
-
-            typedef typename make_attribute::value_type value_type;
-            typedef typename transform::type transform_attr;
-            value_type made_attr = make_attribute::call(attr);
-            transform_attr attr_ = transform::pre(made_attr);
-
-#if defined(BOOST_SPIRIT_X3_DEBUG)
-            context_debug<Iterator, typename make_attribute::value_type>
-                dbg(rule_name, first, last, made_attr);
-#endif
-            rule_context<Attribute, Params>
-                r_context{boost::addressof(attr_), &params};
-            auto context(make_context<rule_context_tag>(r_context));
-
-            if (parse_rhs(rhs, first, last
-              , make_context<skipper_tag>(skipper, context), attr_
-              , mpl::bool_<(RHS::has_action && !ExplicitAttrPropagation::value)>()))
-            {
-                // do up-stream transformation, this integrates the results
-                // back into the original attribute value, if appropriate
-                traits::post_transform(attr, attr_);
-
-#if defined(BOOST_SPIRIT_X3_DEBUG)
-                dbg.fail = false;
-#endif
-                return true;
-            }
-            return false;
         }
     };
 }}}}
