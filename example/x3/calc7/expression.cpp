@@ -4,19 +4,45 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include "expression_def.hpp"
+#include "expression.hpp"
 
 namespace client
 {
     typedef std::string::const_iterator iterator_type;
 
-    typedef x3::ascii::space_type const skipper_type;
-    typedef x3::any_parser<
-        iterator_type, ast::expression
-      , x3::context<x3::skipper_tag, skipper_type>>
-    expression_type;
+    namespace x3 = boost::spirit::x3;
 
-    template
-    expression_type
-    expression<iterator_type, skipper_type>(); 
+    ///////////////////////////////////////////////////////////////////////////////
+    //  The calculator grammar
+    ///////////////////////////////////////////////////////////////////////////////
+    namespace calculator_grammar
+    {
+        using x3::uint_;
+        using x3::char_;
+
+        x3::rule<class expression, ast::expression> const expression("expression");
+        x3::rule<class term, ast::expression> const term("term");
+        x3::rule<class factor, ast::operand> const factor("factor");
+
+        BOOST_SPIRIT_DEFINE
+        (
+            expression =
+                term
+                >> *(   (char_('+') >> term)
+                    |   (char_('-') >> term)
+                    )
+          , term =
+                factor
+                >> *(   (char_('*') >> factor)
+                    |   (char_('/') >> factor)
+                    )
+          , factor =
+                    uint_
+                |   "(" >> expression >> ')'
+                |   (char_('-') >> factor)
+                |   (char_('+') >> factor)
+        )
+        
+        BOOST_SPIRIT_INSTANTIATE(iterator_type, expression, x3::ascii::space)
+    }
 }

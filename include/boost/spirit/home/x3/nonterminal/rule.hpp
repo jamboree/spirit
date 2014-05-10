@@ -15,6 +15,7 @@
 #include <boost/spirit/home/x3/nonterminal/detail/decompose_attribute.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
+#include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/cat.hpp>
 
@@ -192,24 +193,24 @@ namespace boost { namespace spirit { namespace x3
 #define BOOST_SPIRIT_DECLARE_(r, data, rule)                                    \
     template <typename Iterator, typename Attribute                             \
         , typename Params, typename Skipper>                                    \
-    bool parse_rule(rule const&, Iterator&, Iterator const&                     \
+    bool parse_rule(decltype(rule) const&, Iterator&, Iterator const&           \
         , Attribute&, Params&, Skipper const&);
     /***/
 #define BOOST_SPIRIT_DECLARE(...) BOOST_PP_SEQ_FOR_EACH(                        \
     BOOST_SPIRIT_DECLARE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
+#define BOOST_SPIRIT_INSTANTIATE_(iterator, rule, skipper)                      \
+    template bool                                                               \
+    parse_rule<iterator, rule::attribute_type, rule::params_type, skipper>(     \
+        rule const&, iterator&, iterator const&                                 \
+      , rule::attribute_type&, rule::params_type&, skipper const&);
+    /***/
 #define BOOST_SPIRIT_INSTANTIATE(iterator, ...)                                 \
-    template bool parse_rule<iterator                                           \
-        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::attribute_type      \
-        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::params_type         \
-        , decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                        \
-            , ::boost::spirit::x3::unused))>(                                   \
-            decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__)) const&             \
-          , iterator&, iterator const&                                          \
-          , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::attribute_type&   \
-          , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))::params_type&      \
-          , decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                      \
-            , ::boost::spirit::x3::unused)) const&);
+    BOOST_SPIRIT_INSTANTIATE_(iterator                                          \
+        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))                      \
+        , ::boost::spirit::x3::unrefcv_t<                                       \
+            decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                      \
+                , ::boost::spirit::x3::unused))>)
     /***/
 }}}
 
