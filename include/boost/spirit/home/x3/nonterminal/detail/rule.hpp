@@ -130,7 +130,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         typedef identity<ID> type;
     };
 
-    template <typename Attribute, typename Params, typename ID>
+    template <typename ID, typename Attribute>
     struct parse_rule
     {
         template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
@@ -230,7 +230,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             return parse_rhs_main(rhs, first, last, context, unused);
         }
 
-        template <typename RHS, typename Iterator, typename ActualAttribute
+        template <typename RHS, typename Iterator
+            , typename ActualAttribute, typename Params
             , typename Skipper, typename ExplicitAttrPropagation>
         static bool call_rule_definition(
             RHS const& rhs

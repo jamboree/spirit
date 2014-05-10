@@ -53,10 +53,10 @@ namespace boost { namespace spirit { namespace x3
 
             params_type params(std::forward<Ts>(ts)...);
 
-            return detail::parse_rule<attribute_type, params_type, id>
-                ::call_rule_definition(rhs, name, first, last, attr, params
-                    , x3::get<skipper_tag>(context)
-                    , mpl::bool_<explicit_attribute_propagation>());
+            return detail::parse_rule<id, attribute_type>::call_rule_definition(
+                    rhs, name, first, last, attr, params
+                  , x3::get<skipper_tag>(context)
+                  , mpl::bool_<explicit_attribute_propagation>());
         }
 
         RHS rhs;
