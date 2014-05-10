@@ -14,7 +14,6 @@
 #include <boost/spirit/home/x3/nonterminal/detail/rule.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/decompose_attribute.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
-#include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -51,13 +50,13 @@ namespace boost { namespace spirit { namespace x3
             static_assert(
                 detail::check_args<params_type, Ts...>::value
               , "args/params not matched");
-            
-            x3::skip_over(first, last, context);
+
             params_type params(std::forward<Ts>(ts)...);
 
             return detail::parse_rule<attribute_type, params_type, id>
                 ::call_rule_definition(rhs, name, first, last, attr, params
-                  , mpl::bool_<explicit_attribute_propagation>());
+                    , x3::get<skipper_tag>(context)
+                    , mpl::bool_<explicit_attribute_propagation>());
         }
 
         RHS rhs;

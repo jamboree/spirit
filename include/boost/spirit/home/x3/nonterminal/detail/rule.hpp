@@ -12,6 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
 #include <boost/spirit/home/x3/auxiliary/guard.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
@@ -230,12 +231,12 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         }
 
         template <typename RHS, typename Iterator, typename ActualAttribute
-            , typename ExplicitAttrPropagation>
+            , typename Skipper, typename ExplicitAttrPropagation>
         static bool call_rule_definition(
             RHS const& rhs
           , char const* rule_name
           , Iterator& first, Iterator const& last, ActualAttribute& attr
-          , Params& params, ExplicitAttrPropagation)
+          , Params& params, Skipper const& skipper, ExplicitAttrPropagation)
         {
             typedef traits::make_attribute<Attribute, ActualAttribute> make_attribute;
 
@@ -256,9 +257,10 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 #endif
             rule_context<Attribute, Params>
                 r_context{boost::addressof(attr_), &params};
+            auto context(make_context<rule_context_tag>(r_context));
 
             if (parse_rhs(rhs, first, last
-              , make_context<rule_context_tag>(r_context), attr_
+              , make_context<skipper_tag>(skipper, context), attr_
               , mpl::bool_<(RHS::has_action && !ExplicitAttrPropagation::value)>()))
             {
                 // do up-stream transformation, this integrates the results
