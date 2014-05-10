@@ -24,10 +24,43 @@
 namespace boost { namespace spirit { namespace x3
 {
     template <typename ID>
-    struct rule_context_with_id_tag;
+    struct identity {};
+
+    struct rule_context_tag;
 
     template <typename ID>
-    struct identity;
+    struct rule_context_with_id_tag;
+
+    template <typename Attribute, typename Params>
+    struct rule_context
+    {
+        Attribute& val() const
+        {
+            return *attr_ptr;
+        }
+
+        Params& params() const
+        {
+            return *params_ptr;
+        }
+        
+        Attribute* attr_ptr;
+        Params* params_ptr;
+    };
+
+    template <typename Context>
+    inline auto _val(Context const& context)
+    -> decltype(x3::get<rule_context_tag>(context).val())
+    {
+        return x3::get<rule_context_tag>(context).val();
+    }
+    
+    template <typename Context>
+    inline auto _params(Context const& context)
+    -> decltype(x3::get<rule_context_tag>(context).params())
+    {
+        return x3::get<rule_context_tag>(context).params();
+    }
 
     struct parse_pass_context_tag;
     
@@ -67,24 +100,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         detail::simple_trace_type& f;
     };
 #endif
-
-    template <typename Attribute>
-    struct attr_pointer_scope
-    {
-        attr_pointer_scope(Attribute*& ptr, Attribute* set)
-          : save(ptr), ptr(ptr) { ptr = set; }
-        ~attr_pointer_scope() { ptr = save; }
-
-        Attribute* save;
-        Attribute*& ptr;
-    };
-
-    template <>
-    struct attr_pointer_scope<unused_type>
-    {
-        attr_pointer_scope(unused_type, unused_type) {}
-        ~attr_pointer_scope() {}
-    };
 
     struct no_exception_handler {};
 
@@ -214,16 +229,13 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             return parse_rhs_main(rhs, first, last, context, unused);
         }
 
-        template <typename RHS, typename Iterator, typename Context
-            , typename ActualAttribute, typename AttributePtr
-            , typename ParamsPtr, typename ExplicitAttrPropagation>
+        template <typename RHS, typename Iterator, typename ActualAttribute
+            , typename ExplicitAttrPropagation>
         static bool call_rule_definition(
             RHS const& rhs
           , char const* rule_name
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr, Params& params
-          , AttributePtr& attr_ptr, ParamsPtr& params_ptr
-          , ExplicitAttrPropagation)
+          , Iterator& first, Iterator const& last, ActualAttribute& attr
+          , Params& params, ExplicitAttrPropagation)
         {
             typedef traits::make_attribute<Attribute, ActualAttribute> make_attribute;
 
@@ -242,11 +254,11 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             context_debug<Iterator, typename make_attribute::value_type>
                 dbg(rule_name, first, last, made_attr);
 #endif
-            attr_pointer_scope<typename remove_reference<transform_attr>::type>
-                attr_scope(attr_ptr, boost::addressof(attr_));
-            attr_pointer_scope<Params> params_scope(params_ptr, &params);
+            rule_context<Attribute, Params>
+                r_context{boost::addressof(attr_), &params};
 
-            if (parse_rhs(rhs, first, last, context, attr_
+            if (parse_rhs(rhs, first, last
+              , make_context<rule_context_tag>(r_context), attr_
               , mpl::bool_<(RHS::has_action && !ExplicitAttrPropagation::value)>()))
             {
                 // do up-stream transformation, this integrates the results
@@ -259,42 +271,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
                 return true;
             }
             return false;
-        }
-
-        template <typename RuleDef, typename Iterator, typename Context
-            , typename ActualAttribute, typename AttributeContext, typename... Ts>
-        static bool call_from_rule(
-            RuleDef const& rule_def
-          , char const* rule_name
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr
-          , AttributeContext& attr_ctx, Ts&&... ts)
-        {
-            // This is called when a rule-body has already been established.
-            // The rule body is already established by the rule_definition class,
-            // we will not do it again. We'll simply call the RHS by calling
-            // call_rule_definition.
-            
-            Params params(std::forward<Ts>(ts)...);
-            return call_rule_definition(
-                rule_def.rhs, rule_name, first, last, context
-              , attr, params, attr_ctx.attr_ptr, attr_ctx.params_ptr
-              , mpl::bool_<(RuleDef::explicit_attribute_propagation)>());
-        }
-
-        template <typename RuleDef, typename Iterator, typename Context
-            , typename ActualAttribute, typename... Ts>
-        static bool call_from_rule(
-            RuleDef const& rule_def
-          , char const* rule_name
-          , Iterator& first, Iterator const& last, Context const& context
-          , ActualAttribute& attr, unused_type, Ts&&... ts)
-        {
-            // This is called when a rule-body has *not yet* been established.
-            // The rule body is established by the rule_definition class, so
-            // we call it to parse and establish the rule-body.
-
-            return rule_def.parse(first, last, context, attr, std::forward<Ts>(ts)...);
         }
     };
 }}}}

@@ -26,50 +26,6 @@
 
 namespace boost { namespace spirit { namespace x3
 {
-    template <typename ID>
-    struct identity {};
-
-    struct rule_context_tag;
-
-    template <typename ID>
-    struct rule_context_with_id_tag;
-
-    template <typename Attribute, typename Params>
-    struct rule_context
-    {
-        rule_context(Attribute* attr_ptr = nullptr, Params* params_ptr = nullptr)
-          : attr_ptr(attr_ptr), params_ptr(params_ptr) {}
-
-        Attribute& val() const
-        {
-            BOOST_ASSERT(attr_ptr);
-            return *attr_ptr;
-        }
-
-        Params& params() const
-        {
-            BOOST_ASSERT(params_ptr);
-            return *params_ptr;
-        }
-        
-        Attribute* attr_ptr;
-        Params* params_ptr;
-    };
-
-    template <typename Context>
-    inline auto _val(Context const& context)
-    -> decltype(x3::get<rule_context_tag>(context).val())
-    {
-        return x3::get<rule_context_tag>(context).val();
-    }
-    
-    template <typename Context>
-    inline auto _params(Context const& context)
-    -> decltype(x3::get<rule_context_tag>(context).params())
-    {
-        return x3::get<rule_context_tag>(context).params();
-    }
-
     template <typename LHS, typename RHS, bool explicit_attribute_propagation_>
     struct rule_definition : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
     {
@@ -96,16 +52,11 @@ namespace boost { namespace spirit { namespace x3
                 detail::check_args<params_type, Ts...>::value
               , "args/params not matched");
             
+            x3::skip_over(first, last, context);
             params_type params(std::forward<Ts>(ts)...);
-            rule_context<attribute_type, params_type> r_context;
-            auto rule_ctx1 = make_context<rule_context_with_id_tag<id>>(r_context, context);
-            auto rule_ctx2 = make_context<rule_context_tag>(r_context, rule_ctx1);
-            auto this_context = make_context<id>(*this, rule_ctx2);
 
             return detail::parse_rule<attribute_type, params_type, id>
-                ::call_rule_definition(
-                    rhs, name, first, last, this_context
-                  , attr, params, r_context.attr_ptr, r_context.params_ptr
+                ::call_rule_definition(rhs, name, first, last, attr, params
                   , mpl::bool_<explicit_attribute_propagation>());
         }
 
@@ -194,6 +145,7 @@ namespace boost { namespace spirit { namespace x3
             return r.name;
         }
     };
+    
 #define BOOST_SPIRIT_RULEDEF(n, i)                                              \
     BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(_rule_def, n), _), i)
     /***/
@@ -206,17 +158,8 @@ namespace boost { namespace spirit { namespace x3
       , Iterator& first, Iterator const& last, Context const& context           \
       , Attribute_& attr, Ts&&... ts)                                           \
     {                                                                           \
-        typedef decltype(BOOST_SPIRIT_RULEDEF(__LINE__, r)) rule_def_t;         \
-        typedef typename rule_def_t::attribute_type attribute_type;             \
-        typedef typename rule_def_t::params_type params_type;                   \
-        typedef typename rule_def_t::id id;                                     \
-        return ::boost::spirit::x3::detail::                                    \
-            parse_rule<attribute_type, params_type, id>::call_from_rule(        \
-                BOOST_SPIRIT_RULEDEF(__LINE__, r), r_.name                      \
-              , first, last, context, attr                                      \
-              , ::boost::spirit::x3::get<::boost::spirit::x3::                  \
-                    rule_context_with_id_tag<id>>(context)                      \
-              , std::forward<Ts>(ts)...);                                       \
+        return BOOST_SPIRIT_RULEDEF(__LINE__, r).parse(                         \
+            first, last, context, attr, std::forward<Ts>(ts)...);               \
     }
     /***/
 #define BOOST_SPIRIT_DEFINE(...) BOOST_PP_SEQ_FOR_EACH(                         \
