@@ -16,7 +16,7 @@ Here's a list of improvement/features over the official x3-devel branch.
 
 ### Directives
 * Local variables support `x3::locals<Ts...>(args...)[p]`.
-* `lexeme(lex)[p]` support.
+* `x3::lexeme(lex)[p]` support.
 * All directives are lazy-args enabled.
 
 ### Parsers
@@ -25,9 +25,9 @@ Here's a list of improvement/features over the official x3-devel branch.
 * All parsers are lazy-args enabled.
 
 ### Extensions
-* `seek(s)[p]` support.
-* `advance` parser.
-* `regex` parser.
+* `x3::seek(s)[p]` support.
+* `x3::advance` parser.
+* `x3::regex` parser.
 * `x3::reference<P>` adaptor.
 * `x3::pos_iterator` and `x3::newl` support.
 
