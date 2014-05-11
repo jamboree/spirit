@@ -162,7 +162,7 @@ namespace boost { namespace spirit { namespace x3
     }
 
     template <typename T>
-    struct get_info<T, typename traits::is_rule<T>::type>
+    struct get_info<T, typename enable_if<traits::is_rule<T>>::type>
     {
         typedef std::string result_type;
         std::string operator()(T const& r) const
