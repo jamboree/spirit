@@ -12,7 +12,7 @@ Here's a list of improvement/features over the official x3-devel branch.
 * Literal extension API `extension::literal<T>`. 
 * Phoenix actor support `BOOST_SPIRIT_USE_ACTORS(...)`.
 * Rule params support.
-* Scalability improvement.
+* [Scalability improvement](https://github.com/jamboree/spirit/wiki/Scalability).
 
 ### Directives
 * Local variables support `x3::locals<Ts...>(args...)[p]`.
