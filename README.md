@@ -29,7 +29,7 @@ Here's a list of improvement/features over the official x3-devel branch.
 * `x3::advance` parser. See [example](test/x3/advance.cpp).
 * `x3::regex` parser. See [example](test/x3/regex.cpp).
 * `x3::reference<P>` adaptor.
-* `x3::pos_iterator` and `x3::newl` support.
+* `x3::pos_iterator` and `x3::newl` support. See [example](test/x3/pos_iterator.cpp).
 
 ## Support
-If you have any problem, please open an issue on the 'issues' page.
+If you have any problem, please open an issue on the [issues](https://github.com/jamboree/spirit/issues) page.
