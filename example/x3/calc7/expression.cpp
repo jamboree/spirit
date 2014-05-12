@@ -39,7 +39,7 @@ namespace client
                     )
           , factor =
                     uint_
-                |   "(" >> expression > ')'
+                |   "(" > expression > ')'
                 |   (char_('-') > factor)
                 |   (char_('+') > factor)
         )
