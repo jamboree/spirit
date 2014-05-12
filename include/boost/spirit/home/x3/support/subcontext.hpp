@@ -14,6 +14,8 @@
 #pragma once
 #endif
 
+#include <boost/spirit/home/x3/support/unused.hpp>
+#include <boost/utility/declval.hpp>
 #include <boost/fusion/support/pair.hpp>
 
 namespace boost { namespace spirit { namespace x3
@@ -24,12 +26,12 @@ namespace boost { namespace spirit { namespace x3
     template <typename... IDs, typename... Ts>
     struct subcontext<IDs(Ts)...> : fusion::pair<IDs, Ts>...
     {
-        subcontext(fusion::pair<IDs, Ts>... pairs)
-          : fusion::pair<IDs, Ts>(std::move(pairs))...
+        subcontext(Ts... ts)
+          : fusion::pair<IDs, Ts>(std::move(ts))...
         {}
         
-        template <typename T>
-        static unused_type get_impl(T const&)
+        template <typename ID>
+        static unused_type get_impl(unused_type)
         {
             return unused;
         }
