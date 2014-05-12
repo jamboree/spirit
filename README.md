@@ -1,6 +1,6 @@
 Spirit XXXperimental
 ======
-```c++
+
                _     _   _      __   __ _____
      ___ _ __ (_)_ _(_)_| |_    \ \ / / __  /
     / __| '_ \| | '/| |_   _|    \ V /   / /
@@ -8,7 +8,7 @@ Spirit XXXperimental
     |___/ .__/|_|_| |_| \___|   / / \ \ --  \
         |_|                     --   -- -----
           P a r s e r   F r a m e w o r k
-```
+
 This is an experimental branch of Spirit X3.
 
 ## Cheat Sheet
