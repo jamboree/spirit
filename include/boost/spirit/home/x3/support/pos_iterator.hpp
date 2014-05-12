@@ -11,6 +11,8 @@
 #pragma once
 #endif
 
+#include <boost/spirit/home/x3/core/skip_over.hpp>
+#include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 
 
@@ -82,7 +84,9 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unused_type attribute_type;
         static bool const has_attribute = false;
+        static bool const caller_is_pass_through_unary = true;
 
+        // newl
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
             , Context const& context, Attribute& /*attr*/) const
@@ -106,6 +110,28 @@ namespace boost { namespace spirit { namespace x3
                 first = it;
             }
             return matched;
+        }
+        
+        template <typename Parser>
+        static typename extension::as_parser<Parser>::value_type
+        transform_params(Parser const& p)
+        {
+            return as_parser(p);
+        }
+        
+        // newl(p)
+        template <typename Iterator, typename Context, typename Attribute, typename Parser>
+        bool parse(Iterator& first, Iterator const& last
+            , Context const& context, Attribute& attr, Parser const& p) const
+        {
+            static_assert(traits::is_parser<Parser>::value, "invalid parser");
+            
+            if (p.parse(first, last, context, attr))
+            {
+                first.newline();
+                return true;
+            }
+            return false;
         }
     };
     

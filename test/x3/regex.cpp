@@ -10,8 +10,7 @@
 #include <string>
 #include "test.hpp"
 
-int
-main()
+int main()
 {
     using spirit_test::test;
     using spirit_test::test_attr;
