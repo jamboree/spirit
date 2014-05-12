@@ -1,8 +1,15 @@
 Spirit XXXperimental
 ======
-
-This is an experimental branch of Spirit X3, which would be hopefully merged into the official X3 finally.
-
+```c++
+               _     _   _      __   __ _____
+     ___ _ __ (_)_ _(_)_| |_    \ \ / / __  /
+    / __| '_ \| | '/| |_   _|    \ V /   / /
+    \__ \ |_) | | | | | | |_     / ^ \   \ \
+    |___/ .__/|_|_| |_| \___|   / / \ \ --  \
+        |_|                     --   -- -----
+          P a r s e r   F r a m e w o r k
+```
+This is an experimental branch of Spirit X3.
 
 ## Cheat Sheet
 Here's a list of improvement/features over the official x3-devel branch.
