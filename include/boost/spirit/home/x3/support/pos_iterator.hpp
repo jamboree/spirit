@@ -13,6 +13,7 @@
 
 #include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/parse.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 
 
@@ -59,6 +60,18 @@ namespace boost { namespace spirit { namespace x3
                 c = *it;
                 if (c == '\r' || c == '\n')
                     return it;
+            }
+            return end;
+        }
+        
+        template <typename Parser>
+        Iterator line_end(Iterator const& end, Parser const& p) const
+        {
+            for (Iterator it(_beg); it != end; ++it)
+            {
+                Iterator save(it);
+                if (parse(it, end, p))
+                    return save;
             }
             return end;
         }

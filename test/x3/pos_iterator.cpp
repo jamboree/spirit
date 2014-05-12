@@ -26,18 +26,18 @@ int main()
 
     { // newl
         BOOST_TEST((parse(it = begin, end, *((newl | char_) - '+'))
-            && it.row() == 1 && it.col() == 1));
+          && it.row() == 1 && it.col() == 1 && it.line_begin() - begin == 2));
         BOOST_TEST((parse(it = begin, end, *((newl | char_) - '-'))
-            && it.row() == 2 && it.col() == 4));
+          && it.row() == 2 && it.col() == 4 && it.line_begin() - begin == 6));
         BOOST_TEST((parse(it = begin, end, *((newl | char_) - '*'))
-            && it.row() == 3 && it.col() == 0));
+          && it.row() == 3 && it.col() == 0 && it.line_begin() - begin == 13));
     }
     
     { // newl(p)
         BOOST_TEST((parse(it = begin, end, *((newl('\n') | char_) - '-'))
-            && it.row() == 1 && it.col() == 4));
+          && it.row() == 1 && it.col() == 4 && it.line_begin() - begin == 6));
         BOOST_TEST((parse(it = begin, end, *((newl("\r\n") | char_) - '*'))
-            && it.row() == 1 && it.col() == 0));
+          && it.row() == 1 && it.col() == 0 && it.line_begin() - begin == 13));
     }
 
     return boost::report_errors();
