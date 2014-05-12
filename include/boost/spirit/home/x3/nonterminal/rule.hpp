@@ -27,6 +27,9 @@ namespace boost { namespace spirit { namespace x3
 {
     template <typename ID>
     struct identity {};
+    
+    template <typename... IDs>
+    struct filter;
 
     struct rule_context_tag;
 
@@ -62,11 +65,13 @@ namespace boost { namespace spirit { namespace x3
     }
     
     template <typename LHS, typename RHS, bool explicit_attribute_propagation_>
-    struct rule_definition : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
+    struct rule_definition
+      : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
     {
         typedef LHS lhs_type;
         typedef RHS rhs_type;
         typedef typename LHS::id id;
+        typedef typename LHS::filter_type filter_type;
         typedef typename LHS::attribute_type attribute_type;
         typedef typename LHS::params_type params_type;
         static bool const has_attribute = LHS::has_attribute;
@@ -86,17 +91,16 @@ namespace boost { namespace spirit { namespace x3
                 , std::forward<Ts>(ts)...);
         }
           
-        template <typename Iterator, typename Skipper>
+        template <typename Iterator, typename Context>
         friend bool parse_rule(rule_definition const& r
-          , Iterator& first, Iterator const& last
-          , attribute_type& attr, params_type& params, Skipper const& skipper)
+          , Iterator& first, Iterator const& last, Context const& context
+          , attribute_type& attr, params_type& params)
         {
             rule_context<attribute_type, params_type>
                 r_context{boost::addressof(attr), &params};
-            auto context(make_context<rule_context_tag>(r_context));
-            
+
             return detail::parse_rule<id>::parse_rhs(r.rhs, first, last
-              , make_context<skipper_tag>(skipper, context), attr
+              , make_context<rule_context_tag>(r_context, context), attr
               , mpl::bool_<(RHS::has_action && !explicit_attribute_propagation_)>());
         }
 
@@ -104,10 +108,11 @@ namespace boost { namespace spirit { namespace x3
         char const* name;
     };
 
-    template <typename ID, typename Attribute = unused_type>
-    struct rule : parser<rule<ID, Attribute>>
+    template <typename ID, typename Attribute = unused_type, typename Filter = filter<skipper_tag>>
+    struct rule : parser<rule<ID, Attribute, Filter>>
     {
         typedef ID id;
+        typedef Filter filter_type;
         typedef detail::decompose_attribute<Attribute> decompose_attr;
         typedef typename decompose_attr::result_type attribute_type;
         typedef typename decompose_attr::params_type params_type;
@@ -153,8 +158,8 @@ namespace boost { namespace spirit { namespace x3
         template <typename T, typename Enable = void>
         struct is_rule : mpl::false_ {};
     
-        template <typename ID, typename Attribute>
-        struct is_rule<rule<ID, Attribute>> : mpl::true_ {};
+        template <typename ID, typename Attribute, typename Filter>
+        struct is_rule<rule<ID, Attribute, Filter>> : mpl::true_ {};
         
         template <typename LHS, typename RHS, bool explicit_attribute_propagation>
         struct is_rule<rule_definition<LHS, RHS, explicit_attribute_propagation>>
@@ -176,41 +181,34 @@ namespace boost { namespace spirit { namespace x3
     /***/
 #define BOOST_SPIRIT_DEFINE_(r, data, def)                                      \
     auto const BOOST_SPIRIT_RULEDEF(__LINE__, r)(def);                          \
-    template <typename Iterator, typename Attribute                             \
-        , typename Params, typename Skipper>                                    \
+    template <typename Iterator, typename Context                               \
+        , typename Attribute, typename Params>                                  \
     inline bool parse_rule(                                                     \
         decltype(BOOST_SPIRIT_RULEDEF(__LINE__, r))::lhs_type const& r_         \
-      , Iterator& first, Iterator const& last                                   \
-      , Attribute& attr, Params& params, Skipper const& skipper)                \
+      , Iterator& first, Iterator const& last, Context const& context           \
+      , Attribute& attr, Params& params)                                        \
     {                                                                           \
         return parse_rule(BOOST_SPIRIT_RULEDEF(__LINE__, r)                     \
-            , first, last, attr, params, skipper);                              \
+            , first, last, context, attr, params);                              \
     }
     /***/
 #define BOOST_SPIRIT_DEFINE(...) BOOST_PP_SEQ_FOR_EACH(                         \
     BOOST_SPIRIT_DEFINE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
 #define BOOST_SPIRIT_DECLARE_(r, data, rule)                                    \
-    template <typename Iterator, typename Attribute                             \
-        , typename Params, typename Skipper>                                    \
+    template <typename Iterator, typename Context                               \
+        , typename Attribute, typename Params>                                  \
     bool parse_rule(decltype(rule) const&, Iterator&, Iterator const&           \
-        , Attribute&, Params&, Skipper const&);
+        , Context const&, Attribute&, Params&);
     /***/
 #define BOOST_SPIRIT_DECLARE(...) BOOST_PP_SEQ_FOR_EACH(                        \
     BOOST_SPIRIT_DECLARE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
-#define BOOST_SPIRIT_INSTANTIATE_(iterator, rule, skipper)                      \
-    template bool                                                               \
-    parse_rule<iterator, rule::attribute_type, rule::params_type, skipper>(     \
-        rule const&, iterator&, iterator const&                                 \
-      , rule::attribute_type&, rule::params_type&, skipper const&);
-    /***/
-#define BOOST_SPIRIT_INSTANTIATE(iterator, ...)                                 \
-    BOOST_SPIRIT_INSTANTIATE_(iterator                                          \
-        , decltype(BOOST_PP_VARIADIC_ELEM(0, __VA_ARGS__))                      \
-        , ::boost::spirit::x3::unrefcv_t<                                       \
-            decltype(BOOST_PP_VARIADIC_ELEM(1, __VA_ARGS__                      \
-                , ::boost::spirit::x3::unused))>)
+#define BOOST_SPIRIT_INSTANTIATE(iterator, rule, context)                       \
+    template bool parse_rule<iterator, context, decltype(rule)::attribute_type  \
+        , decltype(rule)::params_type>(decltype(rule) const&                    \
+            , iterator&, iterator const&, context const&                        \
+            , decltype(rule)::attribute_type&, decltype(rule)::params_type&);
     /***/
 }}}
 

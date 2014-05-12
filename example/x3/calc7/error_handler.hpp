@@ -9,17 +9,15 @@
 
 #include <boost/spirit/home/x3.hpp>
 
-namespace client
+namespace client { namespace calculator_grammar
 {
     ///////////////////////////////////////////////////////////////////////////////
     //  Our error handler
     ///////////////////////////////////////////////////////////////////////////////
-    typedef x3::identity<class expression> expression_id;
-
     template <typename Iterator, typename Exception, typename Context>
     x3::error_handler_result
     on_error(
-        expression_id, Iterator&
+        x3::identity<class expression>, Iterator&
       , Exception const& x, Context const& context)
     {
         std::cout
@@ -32,6 +30,6 @@ namespace client
             ;
         return x3::error_handler_result::fail;
     }
-}
+}}
 
 #endif

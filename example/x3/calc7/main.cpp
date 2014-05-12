@@ -23,7 +23,6 @@
 #include "vm.hpp"
 #include "compiler.hpp"
 #include "expression.hpp"
-#include "error_handler.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Main program

@@ -1,6 +1,7 @@
 /*=============================================================================
     Copyright (c) 2001-2013 Joel de Guzman
     Copyright (c) 2013 Agustín Bergé
+    opyright (c) 2014 Jamboree
     http://spirit.sourceforge.net/
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -14,76 +15,49 @@
 #endif
 
 #include <boost/fusion/support/pair.hpp>
-#include <boost/spirit/home/x3/support/context.hpp>
-#include <boost/spirit/home/x3/support/unused.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
-    template <typename... T>
+    template <typename... Pairs>
     struct subcontext;
-
-    template <>
-    struct subcontext<>
+    
+    template <typename... IDs, typename... Ts>
+    struct subcontext<IDs(Ts)...> : fusion::pair<IDs, Ts>...
     {
-        template <typename Context>
-        subcontext(Context const& /*context*/)
+        subcontext(fusion::pair<IDs, Ts>... pairs)
+          : fusion::pair<IDs, Ts>(std::move(pairs))...
         {}
         
-        template <typename ID_, typename Unused = void>
-        struct get_result
-        {
-            typedef unused_type type;
-        };
-
-        template <typename ID_>
-        unused_type
-        get(ID_) const
+        template <typename T>
+        static unused_type get_impl(T const&)
         {
             return unused;
         }
-    };
+        
+        template <typename ID, typename T>
+        static T get_impl(fusion::pair<ID, T> const& p)
+        {
+            return p.second;
+        }
+        
+        template <typename ID>
+        struct get_result
+        {
+            typedef decltype(declval<subcontext>().get(declval<ID>())) type;
+        };
 
-    template <typename T>
-    struct subcontext<T>
-      : context<typename T::first_type, typename T::second_type>
+        template <typename ID>
+        auto get(mpl::identity<ID>) const->decltype(get_impl<ID>(*this))
+        {
+            return get_impl<ID>(*this);
+        }
+    };
+    
+    template <typename... IDs, typename... Ts>
+    inline subcontext<IDs(Ts)...> make_subcontext(Ts&&... ts)
     {
-        typedef context<
-            typename T::first_type, typename T::second_type
-        > context_type;
-
-        template <typename Context>
-        subcontext(Context const& context)
-          : context_type(x3::get<typename T::first_type>(context))
-        {}
-
-        using context_type::get;
-    };
-
-    template <typename T, typename... Tail>
-    struct subcontext<T, Tail...>
-      : subcontext<Tail...>
-      , context<
-            typename T::first_type, typename T::second_type
-          , subcontext<Tail...>
-        >
-    {
-        typedef subcontext<Tail...> base_type;
-        typedef context<
-            typename T::first_type, typename T::second_type
-          , base_type
-        > context_type;
-
-        template <typename Context>
-        subcontext(Context const& context)
-          : base_type(context)
-          , context_type(
-                x3::get<typename T::first_type>(context)
-              , *static_cast<base_type*>(this))
-        {}
-
-        using context_type::get;
-    };
-
+        return {std::forward<Ts>(ts)...};
+    }
 }}}
 
 #endif

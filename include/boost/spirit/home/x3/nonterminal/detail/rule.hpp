@@ -13,6 +13,7 @@
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/support/context.hpp>
+#include <boost/spirit/home/x3/support/subcontext.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
 #include <boost/spirit/home/x3/auxiliary/guard.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/check_args.hpp>
@@ -27,6 +28,9 @@ namespace boost { namespace spirit { namespace x3
 {
     template <typename ID>
     struct identity;
+    
+    template <typename... IDs>
+    struct filter;
     
     struct parse_pass_context_tag;
     
@@ -95,10 +99,24 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         typedef identity<ID> type;
     };
     
+    template <typename Filter>
+    struct filter_subcontext;
+    
+    template <typename... IDs>
+    struct filter_subcontext<filter<IDs...>>
+    {
+        template <typename Context>
+        static auto apply(Context const& context)
+        {
+            return make_subcontext<IDs...>(x3::get<IDs>(context)...);
+        }
+    };
+
     template <typename Rule, typename Iterator, typename Context, typename Attribute, typename... Ts>
     bool parse_rule_main(Rule const& r, Iterator& first, Iterator const& last
       , Context const& context, Attribute& attr, Ts&&... ts)
     {
+        typedef typename Rule::filter_type filter_type;
         typedef typename Rule::attribute_type attribute_type;
         typedef typename Rule::params_type params_type;
         
@@ -119,13 +137,14 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         value_type made_attr = make_attribute::call(attr);
         transform_attr attr_ = transform::pre(made_attr);
         params_type params(std::forward<Ts>(ts)...);
+        auto const subcontext(filter_subcontext<filter_type>::apply(context));
 
 #if defined(BOOST_SPIRIT_X3_DEBUG)
         context_debug<Iterator, typename make_attribute::value_type>
             dbg(r.name, first, last, made_attr);
 #endif
         // parse_rule is found by ADL
-        if (parse_rule(r, first, last, attr_, params, x3::get<skipper_tag>(context)))
+        if (parse_rule(r, first, last, subcontext, attr_, params))
         {
             // do up-stream transformation, this integrates the results
             // back into the original attribute value, if appropriate

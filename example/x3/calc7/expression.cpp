@@ -5,6 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "expression.hpp"
+#include "error_handler.hpp"
 
 namespace client
 {
@@ -28,21 +29,22 @@ namespace client
         (
             expression =
                 term
-                >> *(   (char_('+') >> term)
-                    |   (char_('-') >> term)
+                >> *(   (char_('+') > term)
+                    |   (char_('-') > term)
                     )
           , term =
                 factor
-                >> *(   (char_('*') >> factor)
-                    |   (char_('/') >> factor)
+                >> *(   (char_('*') > factor)
+                    |   (char_('/') > factor)
                     )
           , factor =
                     uint_
-                |   "(" >> expression >> ')'
-                |   (char_('-') >> factor)
-                |   (char_('+') >> factor)
+                |   "(" >> expression > ')'
+                |   (char_('-') > factor)
+                |   (char_('+') > factor)
         )
-        
-        BOOST_SPIRIT_INSTANTIATE(iterator_type, expression, x3::ascii::space)
+
+        BOOST_SPIRIT_INSTANTIATE(iterator_type, expression
+          , x3::subcontext<x3::skipper_tag(x3::ascii::space_type const&)>)
     }
 }
