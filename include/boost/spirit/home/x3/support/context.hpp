@@ -23,7 +23,7 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unrefcv_t<Next> next_type;
         
-        context(T& val, Next const& next)
+        context(T& val, next_type const& next)
             : val(val), next(next) {}
 
         template <typename ID_, typename Unused = void>
