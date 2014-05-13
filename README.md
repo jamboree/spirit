@@ -4,7 +4,7 @@ Spirit XXXperimental
                    _     _   _      __   __ _____
          ___ _ __ (_)_ _(_)_| |_    \ \ / / __  /
         / __| '_ \| | '/| |_   _|    \ V /   / /
-        \__ \ |_) | | | | | | |_     / ^ \   \ \
+        \__ \ |_) | | | | | | |_     / . \   \ \
         |___/ .__/|_|_| |_| \___|   / / \ \ --  \
             |_|                     --   -- -----
               P a r s e r   F r a m e w o r k
@@ -32,7 +32,8 @@ Here's a list of improvement/features over the official x3-devel branch.
 * All parsers are lazy-args enabled.
 
 ### Extensions
-* `x3::seek(s)[p]` support. See [example](test/x3/seek.cpp#L60).
+* `x3::seek(stepper)[p]` support. See [example](test/x3/seek.cpp#L60).
+* `x3::sink(attr)[p]` support. See [example](test/x3/sink.cpp).
 * `x3::advance` parser. See [example](test/x3/advance.cpp).
 * `x3::regex` parser. See [example](test/x3/regex.cpp).
 * `x3::reference<P>` adaptor.
