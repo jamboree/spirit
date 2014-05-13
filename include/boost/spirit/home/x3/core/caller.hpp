@@ -73,7 +73,8 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             return invoke_parse(first, last, context, attr,
-                detail::eval<Ts const&>(std::get<Ns>(params), context)...);
+                detail::eval<typename detail::unwrap_param<Ts>::type>(
+                    std::get<Ns>(params), context)...);
         }
         
         template <typename Iterator, typename Context

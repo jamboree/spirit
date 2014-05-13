@@ -12,6 +12,7 @@
 #endif
 
 #include <tuple>
+#include <boost/ref.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/utility/declval.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
@@ -52,6 +53,24 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     struct wrap_param<T[N]>
     {
         typedef array_wrapper<T, N> type;
+    };
+    
+    template <typename T>
+    struct unwrap_param
+    {
+        typedef T const& type;
+    };
+    
+    template <typename T>
+    struct unwrap_param<reference_wrapper<T>>
+    {
+        typedef T& type;
+    };
+    
+    template <typename T>
+    struct unwrap_param<std::reference_wrapper<T>>
+    {
+        typedef T& type;
     };
 
     template <typename Subject, typename Enable, typename... Ts>
