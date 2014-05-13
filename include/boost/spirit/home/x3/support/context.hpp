@@ -13,6 +13,7 @@
 #endif
 
 #include <boost/spirit/home/x3/support/unused.hpp>
+#include <boost/spirit/home/x3/support/utility/unrefcv.hpp>
 #include <boost/mpl/identity.hpp>
 
 namespace boost { namespace spirit { namespace x3
@@ -20,13 +21,15 @@ namespace boost { namespace spirit { namespace x3
     template <typename ID, typename T, typename Next = unused_type>
     struct context
     {
+        typedef unrefcv_t<Next> next_type;
+        
         context(T& val, Next const& next)
             : val(val), next(next) {}
 
         template <typename ID_, typename Unused = void>
         struct get_result
         {
-            typedef typename Next::template get_result<ID_>::type type;
+            typedef typename next_type::template get_result<ID_>::type type;
         };
 
         template <typename Unused>
@@ -35,20 +38,47 @@ namespace boost { namespace spirit { namespace x3
             typedef T& type;
         };
 
+        template <typename ID_, typename Unused = void>
+        struct remove_result
+        {
+            typedef typename
+                next_type::template remove_result<ID_>::type
+            removed_type;
+            typedef context<ID, T, removed_type> type;
+        };
+
+        template <typename Unused>
+        struct remove_result<mpl::identity<ID>, Unused>
+        {
+            typedef Next const& type;
+        };
+        
         T& get(mpl::identity<ID>) const
         {
             return val;
         }
 
         template <typename ID_>
-        typename Next::template get_result<ID_>::type
+        typename get_result<ID_>::type
         get(ID_ id) const
         {
             return next.get(id);
         }
+        
+        next_type const& remove(mpl::identity<ID>) const
+        {
+            return next;
+        }
+        
+        template <typename ID_>
+        typename remove_result<ID_>::type
+        remove(ID_ id) const
+        {
+            return {val, next.remove(id)};
+        }
 
         T& val;
-        Next const& next;
+        Next next;
     };
 
     template <typename ID, typename T>
@@ -72,18 +102,41 @@ namespace boost { namespace spirit { namespace x3
             typedef T& type;
         };
 
+        template <typename ID_, typename Unused = void>
+        struct remove_result
+        {
+            typedef context const& type;
+        };
+
+        template <typename Unused>
+        struct remove_result<mpl::identity<ID>, Unused>
+        {
+            typedef unused_type type;
+        };
+                
         T& get(mpl::identity<ID>) const
         {
             return val;
         }
 
         template <typename ID_>
-        unused_type
-        get(ID_) const
+        unused_type get(ID_) const
         {
             return unused;
         }
 
+        template <typename ID_>
+        unused_type remove(mpl::identity<ID>) const
+        {
+            return unused;
+        }
+        
+        template <typename ID_>
+        context const& remove(ID_) const
+        {
+            return *this;
+        }
+        
         T& val;
     };
 
@@ -95,9 +148,11 @@ namespace boost { namespace spirit { namespace x3
     }
 
     template <typename ID, typename T, typename Next>
-    inline context<ID, T, Next> make_context(T& val, Next const& next)
+    inline context<ID, T, typename Next::
+        template remove_result<mpl::identity<ID>>::type>
+    make_context(T& val, Next const& next)
     {
-        return context<ID, T, Next>(val, next);
+        return {val, next.remove(mpl::identity<ID>())};
     }
 
     template <typename ID, typename T>
