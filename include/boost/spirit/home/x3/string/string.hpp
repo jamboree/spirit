@@ -41,7 +41,8 @@ namespace boost { namespace spirit { namespace x3
         
         // skipper delimited
         template <typename Iterator, typename Context, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last
+        typename enable_if<has_skipper<Context>, bool>::type
+        parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
             x3::skip_over(first, last, context);
@@ -55,6 +56,17 @@ namespace boost { namespace spirit { namespace x3
             }
             traits::move_to(first, it, attr);
             first = it;
+            return true;
+        }
+        
+        // til eoi
+        template <typename Iterator, typename Context, typename Attribute>
+        typename disable_if<has_skipper<Context>, bool>::type
+        parse(Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            traits::move_to(first, last, attr);
+            first = last;
             return true;
         }
     };

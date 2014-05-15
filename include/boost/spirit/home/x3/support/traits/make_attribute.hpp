@@ -51,6 +51,10 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
         typedef attribute_type type;
         typedef attribute_type value_type;
     };
+    
+    template <typename Attribute>
+    struct make_attribute<Attribute, unused_type const>
+      : make_attribute<Attribute, unused_type> {};
 
     template <typename Attribute, typename ActualAttribute>
     struct make_attribute<Attribute&, ActualAttribute>
