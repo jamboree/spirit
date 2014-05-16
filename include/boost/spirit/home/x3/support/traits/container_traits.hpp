@@ -108,6 +108,12 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     ///////////////////////////////////////////////////////////////////////////
     template <typename Container, typename T>
     bool push_back(Container& c, T&& val);
+    
+    template <typename T>
+    inline mpl::false_ is_null(T const&)
+    {
+        return {};
+    }
 
     template <typename Container, typename Enable = void>
     struct push_back_container
@@ -115,7 +121,21 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
         template <typename T>
         static bool call(Container& c, T&& val)
         {
+            return call_impl(is_null(val), c, std::forward<T>(val));
+        }
+        
+        template <typename T>
+        static bool call_impl(mpl::false_, Container& c, T&& val)
+        {
             c.insert(c.end(), std::move(val));
+            return true;
+        }
+        
+        template <typename T>
+        static bool call_impl(bool is_null, Container& c, T&& val)
+        {
+            if (!is_null)
+                c.insert(c.end(), std::move(val));
             return true;
         }
     };
