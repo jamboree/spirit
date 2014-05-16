@@ -12,6 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
+#include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/support/subcontext.hpp>
 #include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
@@ -111,7 +112,18 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             return make_subcontext<IDs...>(x3::get<IDs>(context)...);
         }
     };
+    
+    template <typename Iterator, typename Context>
+    void preskip_rule(mpl::false_, Iterator&, Iterator const&, Context const&)
+    {}
 
+    template <typename Iterator, typename Context>
+    void preskip_rule(mpl::true_
+      , Iterator& first, Iterator const& last, Context const& context)
+    {
+        x3::skip_over(first, last, context);
+    }
+    
     template <typename Rule, typename Iterator, typename Context, typename Attribute, typename... Ts>
     bool parse_rule_main(Rule const& r, Iterator& first, Iterator const& last
       , Context const& context, Attribute& attr, Ts&&... ts)
@@ -143,6 +155,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         context_debug<Iterator, typename make_attribute::value_type>
             dbg(r.name, first, last, made_attr);
 #endif
+        mpl::bool_<has_skipper<Context>::value
+            && !has_skipper<decltype(subcontext)>::value> needs_preskip;
+        preskip_rule(needs_preskip, first, last, context);
         // parse_rule is found by ADL
         if (parse_rule(r, first, last, subcontext, attr_, params))
         {
