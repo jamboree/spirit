@@ -26,7 +26,7 @@
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template<class Char>
-    tst<Char, int> make_tst(std::initializer_list<Char*> const& list)
+    tst<Char, int> make_kwd_tst(std::initializer_list<Char*> const& list)
     {
         tst<Char, int> table;
         int i = 0;
@@ -65,8 +65,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     /***/
 #define BOOST_SPIRIT_KEYWORDS_CASE(z, i, rule)                                  \
     case i:                                                                     \
-        if (!x3::detail::parse_rule<id>::parse_rhs(BOOST_SPIRIT_KWDDEF(rule, i) \
-          , right, last, ctx, attr, attr_tag)) return false;                    \
+        if (!x3::detail::parse_rule<id>::parse_rhs_main(                        \
+            BOOST_SPIRIT_KWDDEF(rule, i), right, last, ctx, attr)) return false;\
         break;
     /***/
 #define BOOST_SPIRIT_DEFINE_KEYWORDS_(rule, lex, names, defs)                   \
@@ -79,8 +79,12 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
       , decltype(rule)::params_type& params)                                    \
     {                                                                           \
         namespace x3 = ::boost::spirit::x3;                                     \
+        typedef decltype(rule) rule_type;                                       \
+        typedef rule_type::attribute_type attribute_type;                       \
+        typedef rule_type::params_type params_type;                             \
+        typedef rule_type::id id;                                               \
         static auto const table(                                                \
-            x3::detail::make_tst({BOOST_PP_SEQ_ENUM(names)}));                  \
+            x3::detail::make_kwd_tst({BOOST_PP_SEQ_ENUM(names)}));              \
         x3::skip_over(first, last, context);                                    \
         Iterator right(first);                                                  \
         auto const& skipper = x3::get<x3::skipper_tag>(context);                \
@@ -92,17 +96,13 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
           , x3::make_context<x3::skipper_tag>(no_skipper, context), x3::unused))\
         {                                                                       \
             Iterator left(first);                                               \
-            int* p = table.find(left, right);                                   \
+            auto p = table.find(left, right);                                   \
             if (p && left == right)                                             \
             {                                                                   \
-                typedef decltype(rule)::attribute_type attribute_type;          \
-                typedef decltype(rule)::params_type params_type;                \
-                typedef decltype(rule)::id id;                                  \
                 x3::rule_context<attribute_type, params_type>                   \
                     r_context{::boost::addressof(attr), &params};               \
                 auto ctx(x3::make_context<x3::rule_context_tag>(                \
                     r_context, context));                                       \
-                ::boost::mpl::false_ attr_tag;                                  \
                 switch (*p)                                                     \
                 {                                                               \
                     BOOST_PP_REPEAT(BOOST_PP_SEQ_SIZE(names)                    \
