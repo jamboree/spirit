@@ -12,6 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/nonterminal/rule.hpp>
+#include <boost/spirit/home/x3/nonterminal/keywords.hpp>
 //~ #include <boost/spirit/home/x3/nonterminal/error_handler.hpp>
 //~ #include <boost/spirit/home/x3/nonterminal/debug_handler.hpp>
 //~ #include <boost/spirit/home/x3/nonterminal/success_handler.hpp>
