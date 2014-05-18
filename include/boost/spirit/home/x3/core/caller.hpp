@@ -14,6 +14,7 @@
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/detail/eval.hpp>
 #include <boost/spirit/home/x3/core/detail/transform_params.hpp>
+#include <boost/spirit/home/x3/support/expectation.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
@@ -62,7 +63,7 @@ namespace boost { namespace spirit { namespace x3
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            return this->subject.parse(first, last, context, attr, params);
+            return invoke_parse(first, last, context, attr, params);
         }
         
         // not transformed
@@ -72,7 +73,7 @@ namespace boost { namespace spirit { namespace x3
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            return invoke_parse(first, last, context, attr,
+            return parse_unpacked(first, last, context, attr,
                 detail::eval<typename detail::unwrap_param<Ts>::type>(
                     std::get<Ns>(params), context)...);
         }
@@ -81,10 +82,10 @@ namespace boost { namespace spirit { namespace x3
             , typename Attribute, typename... As>
         typename enable_if_c<detail::transform_params<Subject, void, As...>
             ::tag::value, bool>::type
-        invoke_parse(Iterator& first, Iterator const& last
+        parse_unpacked(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, As&&... as) const
         {
-            return this->subject.parse(first, last, context, attr,
+            return invoke_parse(first, last, context, attr,
                 this->subject.transform_params(std::forward<As>(as)...));
         }
         
@@ -92,7 +93,30 @@ namespace boost { namespace spirit { namespace x3
             , typename Attribute, typename... As>
         typename enable_if_c<!detail::transform_params<Subject, void, As...>
             ::tag::value, bool>::type
-        invoke_parse(Iterator& first, Iterator const& last
+        parse_unpacked(Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, As&&... as) const
+        {
+            return invoke_parse(
+                first, last, context, attr, std::forward<As>(as)...);
+        }
+
+        template <typename Iterator, typename Unused, typename Next
+            , typename Attribute, typename... As>
+        bool invoke_parse(Iterator& first, Iterator const& last
+          , x3::context<expectation_tag, Unused, Next> const& context
+          , Attribute& attr, As&&... as) const
+        {
+            Iterator entry(first);
+            if (!this->subject.parse(
+                first, last, context, attr, std::forward<As>(as)...))
+                boost::throw_exception(expectation_failure<Iterator>(
+                    entry, what(this->subject, std::forward<As>(as)...)));
+            return true;
+        }
+
+        template <typename Iterator, typename Context
+            , typename Attribute, typename... As>
+        bool invoke_parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, As&&... as) const
         {
             return this->subject.parse(

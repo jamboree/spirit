@@ -12,26 +12,11 @@
 #endif
 
 #include <boost/spirit/home/x3/support/context.hpp>
+#include <boost/spirit/home/x3/support/expectation.hpp>
 #include <boost/spirit/home/x3/core/directive.hpp>
-#include <boost/throw_exception.hpp>
-#include <stdexcept>
 
 namespace boost { namespace spirit { namespace x3
 {
-    template <typename Iterator>
-    struct expectation_failure : std::runtime_error
-    {
-        expectation_failure(Iterator first, Iterator last, std::string const& what)
-          : std::runtime_error("boost::spirit::x3::expectation_failure")
-          , first(first), last(last), what_(what)
-        {}
-        ~expectation_failure() throw() {}
-
-        Iterator first;
-        Iterator last;
-        std::string what_;
-    };
-
     struct expect_directive : directive<expect_directive>
     {
         static bool const is_pass_through_unary = true;
@@ -40,15 +25,21 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            bool r = subject.parse(first, last, context, attr);
-
-            if (!r)
+            Iterator entry(first);
+            if (!subject.parse(first, last, context, attr))
             {
                 boost::throw_exception(
-                    expectation_failure<Iterator>(
-                        first, last, what(subject)));
+                    expectation_failure<Iterator>(entry, what(subject)));
             }
-            return r;
+            return true;
+        }
+        
+        template <typename Subject, typename... Ts, typename Iterator, typename Context, typename Attribute>
+        bool parse(caller<Subject, Ts...> const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            return subject.parse(first, last,
+                make_context<expectation_tag>(unused, context), attr);
         }
     };
 

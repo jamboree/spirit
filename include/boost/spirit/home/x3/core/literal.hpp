@@ -45,6 +45,12 @@ namespace boost { namespace spirit { namespace x3
             return p.parse(first, last, context, attr);
         }
     };
+    
+    template <typename Parser>
+    inline auto what(lit_parser, Parser const& p)
+    {
+        return what(p);
+    }
 
     lit_parser const lit{};
 }}}

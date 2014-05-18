@@ -14,6 +14,8 @@
 
 #include <boost/spirit/home/x3/support/unused.hpp>
 #include <boost/mpl/identity.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -86,7 +88,7 @@ namespace boost { namespace spirit { namespace x3
 
         T& val;
     };
-
+        
     template <typename Tag, typename Context>
     inline auto
     get(Context const& context) -> decltype(context.get(mpl::identity<Tag>()))

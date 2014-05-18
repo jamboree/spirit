@@ -76,7 +76,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
     template <typename ID, typename Iterator, typename Exception, typename Context>
     inline no_exception_handler
-    on_error(ID, Iterator&, Exception const&, Context const&)
+    on_error(ID, Iterator&, Iterator const&, Exception const&, Context const&)
     {
         return no_exception_handler();
     }
@@ -213,9 +213,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
                 {
                     return parse_rhs_main(rhs, first, last, context, attr, mpl::true_());
                 }
-                catch (expectation_failure<Iterator> const& x)
+                catch (expectation_failure<Iterator>& x)
                 {
-                    switch (on_error(typename make_id<ID>::type(), first, x, context))
+                    switch (on_error(typename make_id<ID>::type(), first, last, x, context))
                     {
                         case error_handler_result::fail:
                             return false;
@@ -224,6 +224,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
                         case error_handler_result::accept:
                             return true;
                         case error_handler_result::rethrow:
+                            ++x.rethrow_count;
                             throw;
                     }
                 }
@@ -240,7 +241,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
                 decltype(
                     on_error(
                         typename make_id<ID>::type()
-                      , first
+                      , first, last
                       , boost::declval<expectation_failure<Iterator> const&>()
                       , context
                     )

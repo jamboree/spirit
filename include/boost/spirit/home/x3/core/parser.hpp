@@ -223,9 +223,15 @@ namespace boost { namespace spirit { namespace x3
     };
 
     template <typename Parser>
-    std::string what(Parser const& p)
+    inline std::string what(Parser const& p)
     {
         return get_info<Parser>()(p);
+    }
+    
+    template <typename Parser, typename T, typename... Ts>
+    inline auto what(Parser const& p, T&&, Ts&&...)
+    {
+        return what(p);
     }
 }}}
 

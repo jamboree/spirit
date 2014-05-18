@@ -17,6 +17,7 @@
 #include <boost/spirit/home/x3/char/detail/char_set.hpp>
 #include <boost/spirit/home/x3/char/detail/cast_char.hpp>
 #include <boost/spirit/home/x3/support/traits/string_traits.hpp>
+#include <boost/spirit/home/support/utf8.hpp>
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
@@ -136,6 +137,12 @@ namespace boost { namespace spirit { namespace x3
             return test(ch, ctx) && chset.test(char_type(ch));
         }
     };
+    
+    template <typename Encoding>
+    inline std::string what(char_parser<any_char<Encoding>>, typename Encoding::char_type c)
+    {
+        return '\'' + to_utf8(c) + '\'';
+    }
     
     namespace standard
     {
