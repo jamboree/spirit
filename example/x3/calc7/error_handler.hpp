@@ -14,10 +14,10 @@ namespace client { namespace calculator_grammar
     ///////////////////////////////////////////////////////////////////////////////
     //  Our error handler
     ///////////////////////////////////////////////////////////////////////////////
-    template <typename Iterator, typename Exception, typename Context>
+    template <typename ID, typename A, typename F, typename Iterator, typename Exception, typename Context>
     x3::error_handler_result
     on_error(
-        x3::identity<class expression>, Iterator&, Iterator const& last
+        x3::rule<ID, A, F> const& r, Iterator&, Iterator const& last
       , Exception const& x, Context const& context)
     {
         std::cout
@@ -26,6 +26,8 @@ namespace client { namespace calculator_grammar
             << " here: \""
             << std::string(x.pos, last)
             << "\""
+            << std::endl
+            << "In parsing " << r.name
             << std::endl
             ;
         return x3::error_handler_result::fail;

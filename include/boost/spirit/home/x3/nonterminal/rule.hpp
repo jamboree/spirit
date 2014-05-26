@@ -100,7 +100,7 @@ namespace boost { namespace spirit { namespace x3
             rule_context<attribute_type, params_type>
                 r_context{boost::addressof(attr), &params};
 
-            return detail::parse_rule<id>::parse_rhs(r.rhs, first, last
+            return detail::parse_def(r, first, last
               , make_context<rule_context_tag>(r_context, context), attr
               , mpl::bool_<(RHS::has_action && !explicit_attribute_propagation_)>());
         }
@@ -209,6 +209,13 @@ namespace boost { namespace spirit { namespace x3
     template bool parse_rule<iterator, context>(                                \
         decltype(rule) const&, iterator&, iterator const&, context const&       \
       , decltype(rule)::attribute_type&, decltype(rule)::params_type&);
+    /***/
+#define BOOST_SPIRIT_ON_ERROR(rule_)                                            \
+    template <typename Iterator, typename Exception, typename Context>          \
+    inline boost::spirit::x3::error_handler_result                              \
+    on_error(decltype(rule_) const& rule                                        \
+      , Iterator& first, Iterator const& last                                   \
+      , Exception const& error, Context const& context)
     /***/
 }}}
 

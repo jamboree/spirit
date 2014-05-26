@@ -1,5 +1,6 @@
 /*=============================================================================
     Copyright (c) 2001-2013 Joel de Guzman
+    Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -74,16 +75,16 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
 
     struct no_exception_handler {};
 
-    template <typename ID, typename Iterator, typename Exception, typename Context>
+    template <typename Rule, typename Iterator, typename Exception, typename Context>
     inline no_exception_handler
-    on_error(ID, Iterator&, Iterator const&, Exception const&, Context const&)
+    on_error(Rule const&, Iterator&, Iterator const&, Exception const&, Context const&)
     {
         return no_exception_handler();
     }
 
-    template <typename ID, typename Iterator, typename Attribute, typename Context>
+    template <typename Rule, typename Iterator, typename Attribute, typename Context>
     inline void
-    on_success(ID, Iterator const&, Iterator const&, Attribute&, Context const&)
+    on_success(Rule const&, Iterator const&, Iterator const&, Attribute&, Context const&)
     {
         // no-op
     }
@@ -172,108 +173,104 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         }
         return false;
     }
-    
-    template <typename ID>
-    struct parse_rule
+
+    template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
+    static bool parse_def_main(
+        Def const& def
+      , Iterator& first, Iterator const& last
+      , Context const& context, ActualAttribute& attr, mpl::true_)
     {
-        template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
-        static bool parse_rhs_main(
-            RHS const& rhs
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr, mpl::true_)
+        Iterator i = first;
+        bool r = def.rhs.parse(i, last, context, attr);
+        if (r)
         {
-            Iterator i = first;
-            bool r = rhs.parse(i, last, context, attr);
-            if (r)
-            {
-                bool pass = true;
-                auto action_context = make_context<parse_pass_context_tag>(pass, context);
-                on_success(
-                    typename make_id<ID>::type()
-                  , first
-                  , i
-                  , attr
-                  , action_context
-                );
-                if (pass)
-                    first = i;
-            }
-            return r;
-        }
-
-        template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
-        static bool parse_rhs_main(
-            RHS const& rhs
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr, mpl::false_)
-        {
-            for (;;)
-            {
-                try
-                {
-                    return parse_rhs_main(rhs, first, last, context, attr, mpl::true_());
-                }
-                catch (expectation_failure<Iterator>& x)
-                {
-                    switch (on_error(typename make_id<ID>::type(), first, last, x, context))
-                    {
-                        case error_handler_result::fail:
-                            return false;
-                        case error_handler_result::retry:
-                            continue;
-                        case error_handler_result::accept:
-                            return true;
-                        case error_handler_result::rethrow:
-                            ++x.rethrow_count;
-                            throw;
-                    }
-                }
-            }
-        }
-
-        template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
-        static bool parse_rhs_main(
-            RHS const& rhs
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr)
-        {
-            typedef
-                decltype(
-                    on_error(
-                        typename make_id<ID>::type()
-                      , first, last
-                      , boost::declval<expectation_failure<Iterator> const&>()
-                      , context
-                    )
-                )
-            on_error_result;
-
-            return parse_rhs_main(
-                rhs, first, last, context, attr
-              , is_same<on_error_result, no_exception_handler>()
+            bool pass = true;
+            auto action_context = make_context<parse_pass_context_tag>(pass, context);
+            on_success(
+                typename Def::lhs_type(def.name)
+              , first
+              , i
+              , attr
+              , action_context
             );
+            if (pass)
+                first = i;
         }
+        return r;
+    }
 
-        template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
-        static bool parse_rhs(
-            RHS const& rhs
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute& attr
-          , mpl::false_)
+    template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
+    static bool parse_def_main(
+        Def const& def
+      , Iterator& first, Iterator const& last
+      , Context const& context, ActualAttribute& attr, mpl::false_)
+    {
+        for (;;)
         {
-            return parse_rhs_main(rhs, first, last, context, attr);
+            try
+            {
+                return parse_def_main(def, first, last, context, attr, mpl::true_());
+            }
+            catch (expectation_failure<Iterator>& x)
+            {
+                switch (on_error(typename Def::lhs_type(def.name), first, last, x, context))
+                {
+                    case error_handler_result::fail:
+                        return false;
+                    case error_handler_result::retry:
+                        continue;
+                    case error_handler_result::accept:
+                        return true;
+                    case error_handler_result::rethrow:
+                        ++x.rethrow_count;
+                        throw;
+                }
+            }
         }
+    }
 
-        template <typename RHS, typename Iterator, typename Context, typename ActualAttribute>
-        static bool parse_rhs(
-            RHS const& rhs
-          , Iterator& first, Iterator const& last
-          , Context const& context, ActualAttribute&
-          , mpl::true_)
-        {
-            return parse_rhs_main(rhs, first, last, context, unused);
-        }
-    };
+    template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
+    static bool parse_def_main(
+        Def const& def
+      , Iterator& first, Iterator const& last
+      , Context const& context, ActualAttribute& attr)
+    {
+        typedef
+            decltype(
+                on_error(
+                    boost::declval<typename Def::lhs_type>()
+                  , first, last
+                  , boost::declval<expectation_failure<Iterator> const&>()
+                  , context
+                )
+            )
+        on_error_result;
+
+        return parse_def_main(
+            def, first, last, context, attr
+          , is_same<on_error_result, no_exception_handler>()
+        );
+    }
+
+    template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
+    static bool parse_def(
+        Def const& def
+      , Iterator& first, Iterator const& last
+      , Context const& context, ActualAttribute& attr
+      , mpl::false_)
+    {
+        return parse_def_main(def, first, last, context, attr);
+    }
+
+    template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
+    static bool parse_def(
+        Def const& def
+      , Iterator& first, Iterator const& last
+      , Context const& context, ActualAttribute&
+      , mpl::true_)
+    {
+        return parse_def_main(def, first, last, context, unused);
+    }
 }}}}
 
 #endif
