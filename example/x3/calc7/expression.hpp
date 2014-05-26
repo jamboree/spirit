@@ -16,7 +16,7 @@ namespace client
 
     namespace calculator_grammar
     {
-        extern x3::rule<class expression, ast::expression> const expression;
+        x3::rule<class expression, ast::expression> const expression("expression");
         
         BOOST_SPIRIT_DECLARE(expression)
     }

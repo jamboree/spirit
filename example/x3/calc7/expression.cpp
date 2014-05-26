@@ -21,7 +21,6 @@ namespace client
         using x3::uint_;
         using x3::char_;
 
-        x3::rule<class expression, ast::expression> const expression("expression");
         x3::rule<class term, ast::expression> const term("term");
         x3::rule<class factor, ast::operand> const factor("factor");
 

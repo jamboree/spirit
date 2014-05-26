@@ -45,15 +45,15 @@ namespace boost { namespace spirit { namespace x3
             return p.parse(first, last, context, attr);
         }
     };
-    
-    template <typename Parser>
-    inline auto what(lit_parser, Parser const& p)
-    {
-        return what(p);
-    }
 
     lit_parser const lit{};
 }}}
+
+namespace boost { namespace spirit { namespace x3 { namespace traits
+{
+    template <>
+    struct handles_expectation<lit_parser> : mpl::true_ {};
+}}}}
 
 namespace boost { namespace spirit { namespace x3 { namespace extension
 {

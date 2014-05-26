@@ -36,6 +36,12 @@ namespace boost { namespace spirit { namespace x3
     };
 }}}
 
+namespace boost { namespace spirit { namespace x3 { namespace traits
+{
+    template <typename Component, typename Enable = void>
+    struct handles_expectation : mpl::false_ {};
+}}}}
+
 
 #endif
 

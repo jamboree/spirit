@@ -58,7 +58,7 @@ namespace boost { namespace spirit { namespace x3
 
         // transformed
         template <std::size_t... Ns
-            , typename Iterator, typename Context, typename Attribute>
+          , typename Iterator, typename Context, typename Attribute>
         bool parse_impl(mpl::true_, index_sequence<Ns...>
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
@@ -68,7 +68,7 @@ namespace boost { namespace spirit { namespace x3
         
         // not transformed
         template <std::size_t... Ns
-            , typename Iterator, typename Context, typename Attribute>
+          , typename Iterator, typename Context, typename Attribute>
         bool parse_impl(mpl::false_, index_sequence<Ns...>
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
@@ -79,7 +79,7 @@ namespace boost { namespace spirit { namespace x3
         }
         
         template <typename Iterator, typename Context
-            , typename Attribute, typename... As>
+          , typename Attribute, typename... As>
         typename enable_if_c<detail::transform_params<Subject, void, As...>
             ::tag::value, bool>::type
         parse_unpacked(Iterator& first, Iterator const& last
@@ -90,7 +90,7 @@ namespace boost { namespace spirit { namespace x3
         }
         
         template <typename Iterator, typename Context
-            , typename Attribute, typename... As>
+          , typename Attribute, typename... As>
         typename enable_if_c<!detail::transform_params<Subject, void, As...>
             ::tag::value, bool>::type
         parse_unpacked(Iterator& first, Iterator const& last
@@ -100,15 +100,18 @@ namespace boost { namespace spirit { namespace x3
                 first, last, context, attr, std::forward<As>(as)...);
         }
 
-        template <typename Iterator, typename Unused, typename Next
-            , typename Attribute, typename... As>
-        bool invoke_parse(Iterator& first, Iterator const& last
+        template <
+            typename HandlesExpectation = traits::handles_expectation<Subject>
+          , typename Iterator, typename Unused, typename Next
+          , typename Attribute, typename... As>
+        typename enable_if_c<!HandlesExpectation::value, bool>::type
+        invoke_parse(Iterator& first, Iterator const& last
           , x3::context<expectation_tag, Unused, Next> const& context
           , Attribute& attr, As&&... as) const
         {
             Iterator entry(first);
             if (!this->subject.parse(
-                first, last, context, attr, std::forward<As>(as)...))
+                first, last, context.next, attr, std::forward<As>(as)...))
                 boost::throw_exception(expectation_failure<Iterator>(
                     entry, what(this->subject, std::forward<As>(as)...)));
             return true;
@@ -164,6 +167,10 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
                 result_of_eval<Ts, Context>...>::handles_container>>::type>
       : mpl::bool_<Subject::template caller_traits<x3::detail::
             result_of_eval<Ts, Context>...>::handles_container> {};
+    
+    // handles_expectation
+    template <typename Subject, typename... Ts>
+    struct handles_expectation<caller<Subject, Ts...>> : mpl::true_ {};
 }}}}
 
 
