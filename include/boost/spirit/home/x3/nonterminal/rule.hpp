@@ -210,10 +210,30 @@ namespace boost { namespace spirit { namespace x3
         decltype(rule) const&, iterator&, iterator const&, context const&       \
       , decltype(rule)::attribute_type&, decltype(rule)::params_type&);
     /***/
-#define BOOST_SPIRIT_ON_ERROR(rule_)                                            \
+#define BOOST_SPIRIT_ON_ERROR_(r, f, rule)                                      \
     template <typename Iterator, typename Exception, typename Context>          \
     inline boost::spirit::x3::error_handler_result                              \
-    on_error(decltype(rule_) const& rule                                        \
+    on_error(decltype(rule) const& r_                                           \
+      , Iterator& first, Iterator const& last                                   \
+      , Exception const& error, Context const& context)                         \
+    {                                                                           \
+        return f(r_, first, last, error, context);                              \
+    }
+    /***/
+#define BOOST_SPIRIT_ON_ERROR(...)                                              \
+    template <typename Rule, typename Iterator                                  \
+      , typename Exception, typename Context>                                   \
+    static inline boost::spirit::x3::error_handler_result                       \
+    BOOST_PP_CAT(_on_error, __LINE__)(Rule const& rule                          \
+      , Iterator& first, Iterator const& last                                   \
+      , Exception const& error, Context const& context);                        \
+    BOOST_PP_SEQ_FOR_EACH(BOOST_SPIRIT_ON_ERROR_                                \
+      , BOOST_PP_CAT(_on_error, __LINE__)                                       \
+      , BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))                                  \
+    template <typename Rule, typename Iterator                                  \
+      , typename Exception, typename Context>                                   \
+    boost::spirit::x3::error_handler_result                                     \
+    BOOST_PP_CAT(_on_error, __LINE__)(Rule const& rule                          \
       , Iterator& first, Iterator const& last                                   \
       , Exception const& error, Context const& context)
     /***/
