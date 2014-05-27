@@ -42,6 +42,12 @@ namespace boost { namespace spirit { namespace x3
         
         Subject& ref;
     };
+    
+    template <typename Subject>
+    inline reference<Subject> ref(Subject& subject)
+    {
+        return {subject};
+    }
 }}}
 
 namespace boost { namespace spirit { namespace x3 { namespace traits

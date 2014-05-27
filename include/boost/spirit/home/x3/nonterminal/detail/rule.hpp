@@ -137,7 +137,9 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             check_args<params_type, Ts...>::value
           , "args/params not matched");
           
-        typedef traits::make_attribute<attribute_type, Attribute> make_attribute;
+        typedef
+            traits::make_attribute<attribute_type, unrefcv_t<Attribute>>
+        make_attribute;
 
         // do down-stream transformation, provides attribute for
         // rhs parser

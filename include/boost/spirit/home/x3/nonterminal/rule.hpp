@@ -242,8 +242,8 @@ namespace boost { namespace spirit { namespace x3
         switch (f(ctx))                                                         \
         {                                                                       \
             BOOST_PP_SEQ_FOR_EACH_I(BOOST_SPIRIT_SWITCH_CASE, rule , cases)     \
+        default: return false;                                                  \
         }                                                                       \
-        return false;                                                           \
     }
     /***/
 #define BOOST_SPIRIT_DEFINE_SWITCH(rule, f, seq)                                \

@@ -16,6 +16,8 @@
 
 namespace boost { namespace spirit { namespace x3
 {
+    struct eoi_parser;
+    
     struct seek_directive : directive<seek_directive>
     {
         static bool const is_pass_through_unary = true;
@@ -32,6 +34,15 @@ namespace boost { namespace spirit { namespace x3
                     return false;
             }
             first = it;
+            return true;
+        }
+        
+        // seek[eoi]
+        template <typename Iterator, typename Context, typename Attribute>
+        bool parse(eoi_parser const&, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr) const
+        {
+            first = last;
             return true;
         }
         
