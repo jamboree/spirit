@@ -27,5 +27,6 @@
 #include <boost/spirit/home/x3/directive/seek.hpp>
 #include <boost/spirit/home/x3/directive/sink.hpp>
 #include <boost/spirit/home/x3/directive/with.hpp>
+#include <boost/spirit/home/x3/directive/token.hpp>
 
 #endif

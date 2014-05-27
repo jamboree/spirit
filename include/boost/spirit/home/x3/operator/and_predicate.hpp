@@ -35,11 +35,10 @@ namespace boost { namespace spirit { namespace x3
         }
     };
 
-    template <typename Subject>
-    inline and_predicate<typename extension::as_parser<Subject>::value_type>
-    operator&(Subject const& subject)
+    template <typename Derived>
+    inline and_predicate<Derived> operator&(parser<Derived> const& subject)
     {
-        return {as_parser(subject)};
+        return {subject.derived()};
     }
 }}}
 

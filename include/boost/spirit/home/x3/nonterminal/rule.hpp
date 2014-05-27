@@ -196,6 +196,61 @@ namespace boost { namespace spirit { namespace x3
 #define BOOST_SPIRIT_DEFINE(...) BOOST_PP_SEQ_FOR_EACH(                         \
     BOOST_SPIRIT_DEFINE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
+#define BOOST_SPIRIT_SWITCH_CASE_FILTER0(name, def)                             \
+    (name) BOOST_SPIRIT_SWITCH_CASE_FILTER1
+    /***/
+#define BOOST_SPIRIT_SWITCH_CASE_FILTER1(name, def)                             \
+    (name) BOOST_SPIRIT_SWITCH_CASE_FILTER0
+    /***/
+#define BOOST_SPIRIT_SWITCH_CASE_FILTER0_END
+#define BOOST_SPIRIT_SWITCH_CASE_FILTER1_END
+    /***/
+#define BOOST_SPIRIT_SWITCH_DEF_FILTER0(name, def)                              \
+    (def) BOOST_SPIRIT_SWITCH_DEF_FILTER1
+    /***/
+#define BOOST_SPIRIT_SWITCH_DEF_FILTER1(name, def)                              \
+    (def) BOOST_SPIRIT_SWITCH_DEF_FILTER0
+    /***/
+#define BOOST_SPIRIT_SWITCH_DEF_FILTER0_END
+#define BOOST_SPIRIT_SWITCH_DEF_FILTER1_END
+    /***/
+#define BOOST_SPIRIT_CASEDEF(rule, i)                                           \
+    BOOST_PP_CAT(BOOST_PP_CAT(_case_def_, rule), i)
+    /***/
+#define BOOST_SPIRIT_SWITCH_DEF(r, rule, i, def)                                \
+    auto const BOOST_SPIRIT_CASEDEF(rule, i)(rule %= def);
+    /***/
+#define BOOST_SPIRIT_SWITCH_CASE(r, rule, i, c)                                 \
+    case c: return x3::detail::parse_def(BOOST_SPIRIT_CASEDEF(rule, i)          \
+      , first, last, ctx, attr, ::boost::mpl::false_());
+    /***/
+#define BOOST_SPIRIT_DEFINE_SWITCH_(rule, f, cases, defs)                       \
+    BOOST_PP_SEQ_FOR_EACH_I(BOOST_SPIRIT_SWITCH_DEF, rule , defs)               \
+    template <typename Iterator, typename Context>                              \
+    bool parse_rule(decltype(rule) const&                                       \
+      , Iterator& first, Iterator const& last, Context const& context           \
+      , decltype(rule)::attribute_type& attr                                    \
+      , decltype(rule)::params_type& params)                                    \
+    {                                                                           \
+        namespace x3 = ::boost::spirit::x3;                                     \
+        typedef decltype(rule) rule_type;                                       \
+        typedef rule_type::attribute_type attribute_type;                       \
+        typedef rule_type::params_type params_type;                             \
+        x3::rule_context<attribute_type, params_type>                           \
+            r_context{boost::addressof(attr), &params};                         \
+        auto ctx(x3::make_context<x3::rule_context_tag>(r_context, context));   \
+        switch (f(ctx))                                                         \
+        {                                                                       \
+            BOOST_PP_SEQ_FOR_EACH_I(BOOST_SPIRIT_SWITCH_CASE, rule , cases)     \
+        }                                                                       \
+        return false;                                                           \
+    }
+    /***/
+#define BOOST_SPIRIT_DEFINE_SWITCH(rule, f, seq)                                \
+    BOOST_SPIRIT_DEFINE_SWITCH_(rule, f,                                        \
+        BOOST_PP_CAT(BOOST_SPIRIT_SWITCH_CASE_FILTER0 seq, _END)                \
+      , BOOST_PP_CAT(BOOST_SPIRIT_SWITCH_DEF_FILTER0 seq, _END))
+    /***/
 #define BOOST_SPIRIT_DECLARE_(r, data, rule)                                    \
     template <typename Iterator, typename Context>                              \
     bool parse_rule(decltype(rule) const&, Iterator&, Iterator const&           \

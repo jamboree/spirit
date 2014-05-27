@@ -77,7 +77,7 @@ namespace boost { namespace spirit { namespace x3
             static_assert(traits::is_parser<Lex>::value, "invalid lex");
             
             Iterator right(first);
-            if (lex.parse(right, last, context, attr))
+            if (lex.parse(right, last, context, unused))
             {
                 Iterator left(first);
                 if (subject.parse(left, right, context, attr) && left == right)
