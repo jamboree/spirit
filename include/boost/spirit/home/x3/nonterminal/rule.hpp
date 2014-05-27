@@ -65,9 +65,9 @@ namespace boost { namespace spirit { namespace x3
         return x3::get<rule_context_tag>(context).params();
     }
     
-    template <typename LHS, typename RHS, bool explicit_attribute_propagation_>
+    template <typename LHS, typename RHS, bool force_attribute_>
     struct rule_definition
-      : parser<rule_definition<LHS, RHS, explicit_attribute_propagation_>>
+      : parser<rule_definition<LHS, RHS, force_attribute_>>
     {
         typedef LHS lhs_type;
         typedef RHS rhs_type;
@@ -78,8 +78,8 @@ namespace boost { namespace spirit { namespace x3
         static bool const has_attribute = LHS::has_attribute;
         static bool const handles_container = LHS::handles_container;
         static bool const caller_is_pass_through_unary = true;
-        static bool const explicit_attribute_propagation =
-            explicit_attribute_propagation_;
+        static bool const force_attribute =
+            force_attribute_;
 
         rule_definition(RHS rhs, char const* name)
           : rhs(std::move(rhs)), name(name) {}
@@ -102,7 +102,7 @@ namespace boost { namespace spirit { namespace x3
 
             return detail::parse_def(r, first, last
               , make_context<rule_context_tag>(r_context, context), attr
-              , mpl::bool_<(RHS::has_action && !explicit_attribute_propagation_)>());
+              , mpl::bool_<(RHS::has_action && !force_attribute_)>());
         }
 
         RHS rhs;
@@ -162,8 +162,8 @@ namespace boost { namespace spirit { namespace x3
         template <typename ID, typename Attribute, typename Filter>
         struct is_rule<rule<ID, Attribute, Filter>> : mpl::true_ {};
         
-        template <typename LHS, typename RHS, bool explicit_attribute_propagation>
-        struct is_rule<rule_definition<LHS, RHS, explicit_attribute_propagation>>
+        template <typename LHS, typename RHS, bool force_attribute>
+        struct is_rule<rule_definition<LHS, RHS, force_attribute>>
           : mpl::true_ {};
     }
 
