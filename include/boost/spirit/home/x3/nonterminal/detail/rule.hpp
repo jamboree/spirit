@@ -182,23 +182,23 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
       , Iterator& first, Iterator const& last
       , Context const& context, ActualAttribute& attr, mpl::true_)
     {
-        Iterator i = first;
-        bool r = def.rhs.parse(i, last, context, attr);
-        if (r)
+        Iterator it(first);
+        bool pass = def.rhs.parse(it, last, context, attr);
+        if (pass)
         {
-            bool pass = true;
             auto action_context = make_context<parse_pass_context_tag>(pass, context);
             on_success(
                 typename Def::lhs_type(def.name)
               , first
-              , i
+              , it
               , attr
               , action_context
             );
-            if (pass)
-                first = i;
+            if (!pass)
+                return false;
         }
-        return r;
+        first = it; // the skipped pos
+        return pass;
     }
 
     template <typename Def, typename Iterator, typename Context, typename ActualAttribute>
