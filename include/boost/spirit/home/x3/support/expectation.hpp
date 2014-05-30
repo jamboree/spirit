@@ -15,7 +15,6 @@
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct expectation_tag;
@@ -42,6 +41,4 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     struct handles_expectation : mpl::false_ {};
 }}}}
 
-
 #endif
-

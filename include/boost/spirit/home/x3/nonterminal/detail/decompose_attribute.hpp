@@ -7,10 +7,12 @@
 #ifndef BOOST_SPIRIT_X3_DETAIL_ATTRIBUTE_HELPER_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_DETAIL_ATTRIBUTE_HELPER_HPP_INCLUDED
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
 
 #include <tuple>
 #include <boost/spirit/home/x3/support/unused.hpp>
-
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
@@ -47,6 +49,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     };
 }}}}
 
-
 #endif
-

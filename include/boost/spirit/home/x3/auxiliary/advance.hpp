@@ -16,7 +16,6 @@
 #include <boost/spirit/home/x3/support/unused.hpp>
 #include <boost/iterator/iterator_traits.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct advance_parser : parser<advance_parser>
@@ -69,6 +68,4 @@ namespace boost { namespace spirit { namespace x3
     advance_parser const advance{};
 }}}
 
-
 #endif
-

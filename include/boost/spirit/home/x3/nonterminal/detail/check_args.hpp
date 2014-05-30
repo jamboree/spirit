@@ -7,11 +7,13 @@
 #ifndef BOOST_SPIRIT_X3_DETAIL_CHECK_ARGS_HPP_INCLUDED
 #define BOOST_SPIRIT_X3_DETAIL_CHECK_ARGS_HPP_INCLUDED
 
+#if defined(_MSC_VER)
+#pragma once
+#endif
 
 #include <tuple>
 #include <boost/mpl/identity.hpp>
 #include <boost/spirit/home/x3/support/utility/is_callable.hpp>
-
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
@@ -23,6 +25,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
       : is_callable<typename mpl::identity<void(*)(Ts...)>::type(As...)> {};
 }}}}
 
-
 #endif
-

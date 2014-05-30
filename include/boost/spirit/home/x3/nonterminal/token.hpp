@@ -20,7 +20,6 @@
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/cat.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct token_tag;
@@ -131,6 +130,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
       , BOOST_PP_CAT(BOOST_SPIRIT_TOKEN_DEF_FILTER0 seq, _END))
     /***/
 
-
 #endif
-

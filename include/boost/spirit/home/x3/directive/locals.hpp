@@ -15,7 +15,6 @@
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/core/directive.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct local_variables_tag;
@@ -51,6 +50,4 @@ namespace boost { namespace spirit { namespace x3
     }
 }}}
 
-
 #endif
-

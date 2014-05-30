@@ -13,7 +13,6 @@
 
 #include <boost/spirit/home/x3/core/directive.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct sink_directive : directive<sink_directive>
@@ -36,6 +35,4 @@ namespace boost { namespace spirit { namespace x3
     sink_directive const sink{};
 }}}
 
-
 #endif
-

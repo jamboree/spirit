@@ -20,7 +20,6 @@
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
 #include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename Directive, typename = void>
@@ -299,6 +298,4 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
           , Subject, Context> {};
 }}}}
 
-
 #endif
-

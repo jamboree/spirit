@@ -18,7 +18,6 @@
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename T, std::size_t N>
@@ -92,6 +91,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     };
 }}}}
 
-
 #endif
-

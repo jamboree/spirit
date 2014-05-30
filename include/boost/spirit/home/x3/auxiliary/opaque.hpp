@@ -18,7 +18,6 @@
 #include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 #include <boost/utility/result_of.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     template <typename Gen>
@@ -73,6 +72,4 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     {};
 }}}}
 
-
 #endif
-

@@ -13,7 +13,6 @@
 
 #include <boost/spirit/home/x3/core/directive.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct eoi_parser;
@@ -74,6 +73,4 @@ namespace boost { namespace spirit { namespace x3
     seek_directive const seek{};
 }}}
 
-
 #endif
-

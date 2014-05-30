@@ -20,7 +20,6 @@
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
 #include <boost/spirit/home/x3/support/traits/handles_container.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     template <typename Subject, typename... Ts>
@@ -173,6 +172,4 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     struct handles_expectation<caller<Subject, Ts...>> : mpl::true_ {};
 }}}}
 
-
 #endif
-

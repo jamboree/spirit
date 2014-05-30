@@ -89,6 +89,4 @@ namespace boost { namespace spirit { namespace x3
     using index_sequence_for = make_index_sequence<sizeof...(T)>;
 }}}
 
-
 #endif
-

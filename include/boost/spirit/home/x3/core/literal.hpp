@@ -14,7 +14,6 @@
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/caller.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace extension
 {
     template <typename T, typename Enable = void>
@@ -74,6 +73,5 @@ namespace boost { namespace spirit { namespace x3 { namespace extension
         }
     };
 }}}}
-
 
 #endif

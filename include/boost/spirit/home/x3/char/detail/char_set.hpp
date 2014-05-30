@@ -15,7 +15,6 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/icl/interval_set.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename Char, typename = void>
@@ -68,6 +67,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     };
 }}}}
 
-
 #endif
-

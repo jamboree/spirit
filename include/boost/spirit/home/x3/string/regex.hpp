@@ -17,7 +17,6 @@
 #include <boost/spirit/home/x3/support/traits/string_traits.hpp>
 #include <boost/regex.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     template <typename Char, typename Traits = regex_traits<Char>>
@@ -67,7 +66,5 @@ namespace boost { namespace spirit { namespace x3
     wregex_type const wregex{};
 }}}
 
-
 #endif
-
         

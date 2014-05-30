@@ -14,7 +14,6 @@
 #include <boost/type_traits/remove_cv.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     template <typename T>
@@ -24,6 +23,4 @@ namespace boost { namespace spirit { namespace x3
     using unrefcv_t = typename unrefcv<T>::type;
 }}}
 
-
 #endif
-

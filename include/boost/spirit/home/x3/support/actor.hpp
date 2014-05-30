@@ -19,7 +19,6 @@
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     struct rule_context_tag;
@@ -186,6 +185,4 @@ BOOST_PHOENIX_DEFINE_CUSTOM_TERMINAL(
     SPIRIT_USE_ACTOR, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
 
-
 #endif
-

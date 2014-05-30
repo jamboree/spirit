@@ -16,7 +16,6 @@
 #include <boost/spirit/home/x3/core/parse.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 
-
 namespace boost { namespace spirit { namespace x3
 {
     template <typename Iterator>
@@ -151,6 +150,4 @@ namespace boost { namespace spirit { namespace x3
     newl_parser const newl{};
 }}}
 
-
 #endif
-

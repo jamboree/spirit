@@ -16,7 +16,6 @@
 #include <boost/spirit/home/x3/support/utility/unrefcv.hpp>
 #include <boost/spirit/home/x3/support/utility/is_callable.hpp>
 
-
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
     template <typename T, typename Context, typename = void>
@@ -51,6 +50,4 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         unrefcv_t<decltype(detail::eval(declval<T>(), declval<Context>()))>;
 }}}}
 
-
 #endif
-
