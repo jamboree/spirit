@@ -13,7 +13,7 @@
 
 #include <tuple>
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/core/detail/eval.hpp>
+#include <boost/spirit/home/x3/core/eval.hpp>
 #include <boost/spirit/home/x3/core/detail/transform_params.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
@@ -120,7 +120,7 @@ namespace boost { namespace spirit { namespace x3
           , Context const& context, Attribute& attr) const
         {
             return invoke_parse(subject, first, last, context, attr,
-                detail::eval<typename detail::unwrap_param<Ts>::type>(
+                x3::eval<typename detail::unwrap_param<Ts>::type>(
                     std::get<Ns>(params), context)...);
         }
         
@@ -280,21 +280,21 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     struct attribute_of<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
       : detail::directive_caller_attribute_of<
-            Directive(x3::detail::result_of_eval<Ts, Context>...)
+            Directive(eval_t<Ts, Context>...)
           , Subject, Context> {};
 
     template <typename Directive, typename... Ts, typename Subject, typename Context>
     struct has_attribute<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
       : detail::directive_caller_has_attribute<
-            Directive(x3::detail::result_of_eval<Ts, Context>...)
+            Directive(eval_t<Ts, Context>...)
           , Subject, Context> {};
 
     template <typename Directive, typename... Ts, typename Subject, typename Context>
     struct handles_container<directive_parser<directive_caller<Directive, Ts...>
         , Subject>, Context>
       : detail::directive_caller_handles_container<
-            Directive(x3::detail::result_of_eval<Ts, Context>...)
+            Directive(eval_t<Ts, Context>...)
           , Subject, Context> {};
 }}}}
 
