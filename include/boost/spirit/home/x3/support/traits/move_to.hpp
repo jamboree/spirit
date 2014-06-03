@@ -23,6 +23,7 @@
 #include <boost/fusion/include/is_sequence.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <utility>
+#include <boost/utility/string_ref_fwd.hpp>
 
 namespace boost { namespace spirit { namespace x3 { namespace traits
 {
@@ -205,6 +206,13 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     {
         // $$$ Use std::move_iterator when iterator is not a const-iterator $$$
         detail::move_to(first, last, dest, typename attribute_category<Dest>::type());
+    }
+    
+    template <typename Iterator, typename T, typename Traits>
+    inline void
+    move_to(Iterator first, Iterator last, basic_string_ref<T, Traits>& dest)
+    {
+        dest = basic_string_ref<T, Traits>(first, last - first);
     }
 }}}}
 

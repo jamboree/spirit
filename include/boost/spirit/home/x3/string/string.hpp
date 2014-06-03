@@ -15,6 +15,7 @@
 #include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/string/detail/string_parse.hpp>
 #include <boost/spirit/home/x3/support/utility/utf8.hpp>
+#include <boost/spirit/home/x3/support/traits/string_traits.hpp>
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
@@ -54,6 +55,8 @@ namespace boost { namespace spirit { namespace x3
                 if (skipper.parse(i, last, unused, unused))
                     break;
             }
+            if (first == it)
+                return false;
             traits::move_to(first, it, attr);
             first = it;
             return true;
@@ -65,6 +68,8 @@ namespace boost { namespace spirit { namespace x3
         parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
+            if (first == last)
+                return false;
             traits::move_to(first, last, attr);
             first = last;
             return true;
@@ -85,16 +90,30 @@ namespace boost { namespace spirit { namespace x3
 
     namespace extension
     {
-        template <int N>
-        struct literal<char[N]>
+        namespace detail
         {
-            typedef string_parser<char_encoding::standard> type;
-        };
-
-        template <int N>
-        struct literal<wchar_t[N]>
+            template <typename T>
+            struct default_encoding;
+            
+            template <>
+            struct default_encoding<char>
+            {
+                typedef char_encoding::standard type;
+            };
+            
+            template <>
+            struct default_encoding<wchar_t>
+            {
+                typedef char_encoding::standard_wide type;
+            };
+        }
+        
+        template <typename T>
+        struct literal<T, typename enable_if<traits::is_string<T>>::type>
         {
-            typedef string_parser<char_encoding::standard_wide> type;
+            typedef typename traits::char_type_of<T>::type char_type;
+            typedef typename detail::default_encoding<char_type>::type encoding;
+            typedef string_parser<encoding> type;
         };
     }
 

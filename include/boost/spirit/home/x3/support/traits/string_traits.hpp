@@ -16,6 +16,7 @@
 #include <string>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/identity.hpp>
+#include <boost/utility/string_ref_fwd.hpp>
 
 namespace boost { namespace spirit { namespace x3 { namespace traits
 {
@@ -81,6 +82,9 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
 
     template <typename T, typename Traits, typename Allocator>
     struct is_string<std::basic_string<T, Traits, Allocator> > : mpl::true_ {};
+    
+    template <typename T, typename Traits>
+    struct is_string<basic_string_ref<T, Traits>> : mpl::true_ {};
 
     ///////////////////////////////////////////////////////////////////////////
     // Get the underlying char type of a string
@@ -135,6 +139,10 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
 
     template <typename T, typename Traits, typename Allocator>
     struct char_type_of<std::basic_string<T, Traits, Allocator> >
+      : mpl::identity<T> {};
+    
+    template <typename T, typename Traits>
+    struct char_type_of<basic_string_ref<T, Traits>>
       : mpl::identity<T> {};
 
     ///////////////////////////////////////////////////////////////////////////
