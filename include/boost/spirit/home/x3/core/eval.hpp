@@ -20,9 +20,9 @@ namespace boost { namespace spirit { namespace x3
     template <typename T, typename Context, typename = void>
     struct result_of_eval
     {
-        typedef T&& type;
+        typedef T type;
         
-        static type apply(T&& val, Context const&)
+        static T&& apply(T&& val, Context const&)
         {
             return std::forward<T>(val);
         }
@@ -49,7 +49,7 @@ namespace boost { namespace spirit { namespace x3
     }
 
     template <typename T, typename Context>
-    using eval_t = unrefcv_t<typename result_of_eval<T, Context>::type>;
+    using eval_t = typename result_of_eval<T, Context>::type;
 }}}
 
 #endif
