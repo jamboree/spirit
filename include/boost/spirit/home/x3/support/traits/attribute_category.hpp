@@ -33,8 +33,8 @@ namespace boost { namespace spirit { namespace x3 { namespace traits
     struct container_attribute {};
     struct tuple_attribute {};
     struct associative_attribute {};
-    struct variant_attribute {};
-    struct optional_attribute {};
+    struct variant_attribute : plain_attribute {};
+    struct optional_attribute : plain_attribute {};
 
     template <typename T, typename Enable = void>
     struct attribute_category
