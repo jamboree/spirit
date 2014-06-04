@@ -24,7 +24,7 @@ namespace boost { namespace spirit { namespace x3
 {
     struct token_tag;
 
-    struct tok
+    struct tok_eval
     {
         template <typename Context>
         auto operator()(Context const& context) const
@@ -33,7 +33,7 @@ namespace boost { namespace spirit { namespace x3
         }
     };
 
-    struct tokstr
+    struct tokstr_eval
     {
         template <typename Context>
         auto operator()(Context const& context) const
@@ -46,8 +46,8 @@ namespace boost { namespace spirit { namespace x3
         }
     };
     
-    tok const _tok{};
-    tokstr const _tokstr{};
+    tok_eval const _tok{};
+    tokstr_eval const _tokstr{};
 }}}
 
 namespace boost { namespace spirit { namespace x3 { namespace detail

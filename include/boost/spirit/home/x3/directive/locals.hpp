@@ -26,6 +26,17 @@ namespace boost { namespace spirit { namespace x3
     {
         return x3::get<local_variables_tag>(context);
     }
+    
+    template <int N>
+    struct var_eval
+    {
+        template <typename Context>
+        auto operator()(Context const& context) const->
+            decltype(std::get<N>(x3::get<local_variables_tag>(context)))
+        {
+            return std::get<N>(x3::get<local_variables_tag>(context));
+        }
+    };
         
     template <typename... Ts>
     struct locals_directive : directive<locals_directive<Ts...>>

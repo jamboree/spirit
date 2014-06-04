@@ -64,6 +64,17 @@ namespace boost { namespace spirit { namespace x3
         return x3::get<rule_context_tag>(context).params();
     }
     
+    template <int N>
+    struct param_eval
+    {
+        template <typename Context>
+        auto operator()(Context const& context) const->
+            decltype(std::get<N>(x3::get<rule_context_tag>(context).params()))
+        {
+            return std::get<N>(x3::get<rule_context_tag>(context).params());
+        }
+    };
+    
     template <typename LHS, typename RHS, bool force_attribute_>
     struct rule_definition
       : parser<rule_definition<LHS, RHS, force_attribute_>>
