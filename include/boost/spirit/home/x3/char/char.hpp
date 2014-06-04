@@ -21,6 +21,7 @@
 #include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <boost/spirit/home/support/char_encoding/standard.hpp>
 #include <boost/spirit/home/support/char_encoding/standard_wide.hpp>
+#include <array>
 
 
 namespace boost { namespace spirit { namespace x3
@@ -28,11 +29,11 @@ namespace boost { namespace spirit { namespace x3
     namespace detail
     {
         template <typename T>
-        struct is_multi_string : traits::is_string<T> {};
+        struct is_char_set_string : traits::is_string<T> {};
         
         template <typename T, std::size_t N>
-        struct is_multi_string<T[N]>
-          : mpl::bool_<traits::is_char<T>::value && (N > 2)> {};
+        struct is_char_set_string<T[N]>
+          : mpl::bool_<traits::is_char<T>::value && (N > 3)> {};
     }
     
     template <typename Encoding>
@@ -41,6 +42,7 @@ namespace boost { namespace spirit { namespace x3
         typedef typename Encoding::char_type char_type;
         typedef std::pair<char_type, char_type> char_range;
         typedef detail::char_set<char_type> char_set;
+        typedef std::array<char_type, 2> char_set2;
         
         // char_
         template <typename Char, typename Context>
@@ -69,6 +71,20 @@ namespace boost { namespace spirit { namespace x3
         {
             return char_type(ch[0]);
         }
+        
+        // char_("ab")
+        template <typename Char>
+        static char_set2 transform_params(Char(&ch)[3])
+        {
+            return {ch[0], ch[1]};
+        }
+        
+        template <typename Char, typename Context>
+        static bool test(Char ch, Context const& ctx, char_set2 const& chset)
+        {
+            char_type ch_(ch);
+            return test(ch, ctx) && (chset[0] == ch_ || chset[1] == ch_);
+        }
 
         // char_('a', 'z')
         template <typename Char>
@@ -81,14 +97,14 @@ namespace boost { namespace spirit { namespace x3
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_range const& r)
         {
-            char_type ch_ = char_type(ch);
+            char_type ch_(ch);
             return test(ch, ctx) && !(ch_ < r.first) && !(r.second < ch_);
         }
 
         // char_("a-z")
         template <typename String>
         static typename
-            enable_if<detail::is_multi_string<String>, char_set>::type
+            enable_if<detail::is_char_set_string<String>, char_set>::type
         transform_params(String const& str)
         {
             using detail::cast_char;
