@@ -111,7 +111,7 @@ namespace boost { namespace spirit { namespace x3
         template <typename T>
         struct literal<T, typename enable_if<traits::is_string<T>>::type>
         {
-            typedef typename traits::char_type_of<T>::type char_type;
+            typedef unrefcv_t<typename traits::char_type_of<T>::type> char_type;
             typedef typename detail::default_encoding<char_type>::type encoding;
             typedef string_parser<encoding> type;
         };
