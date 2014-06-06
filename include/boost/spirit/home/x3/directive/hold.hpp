@@ -21,14 +21,37 @@ namespace boost { namespace spirit { namespace x3
     {
         static bool const is_pass_through_unary = true;
         
+        template <typename Attribute>
+        struct trans
+        {
+            static Attribute const& pre(Attribute const& attr)
+            {
+                return attr;
+            }
+            
+            static void post(Attribute& copy, Attribute& attr)
+            {
+                traits::move_to(copy, attr);
+            }
+        };
+        
+        // hold[p]
         template <typename Subject, typename Iterator, typename Context, typename Attribute>
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            Attribute copy(attr);
+            return parse(subject, first, last, context, attr, trans<Attribute>());
+        }
+
+        // hold(trans)[p]
+        template <typename Subject, typename Iterator, typename Context, typename Attribute, typename Trans>
+        bool parse(Subject const& subject, Iterator& first, Iterator const& last
+          , Context const& context, Attribute& attr, Trans const& trans) const
+        {
+            auto copy(trans.pre(attr));
             if (subject.parse(first, last, context, copy))
             {
-                traits::move_to(copy, attr);
+                trans.post(copy, attr);
                 return true;
             }
             return false;
