@@ -1,46 +1,39 @@
 /*=============================================================================
-    Copyright (c) 2001-2013 Joel de Guzman
+    Copyright (c) 2009  Hartmut Kaiser
+    Copyright (c) 2014  Joel de Guzman
     Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_SPIRIT_X3_REAL_APRIL_18_2006_0850AM)
-#define BOOST_SPIRIT_X3_REAL_APRIL_18_2006_0850AM
-
-#if defined(_MSC_VER)
-#pragma once
-#endif
+#if !defined(SPIRIT_X3_BOOL_SEP_29_2009_0709AM)
+#define SPIRIT_X3_BOOL_SEP_29_2009_0709AM
 
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/core/literal.hpp>
 #include <boost/spirit/home/x3/core/skip_over.hpp>
-#include <boost/spirit/home/x3/numeric/real_policies.hpp>
-#include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
-#include <boost/type_traits/is_floating_point.hpp>
+#include <boost/spirit/home/x3/numeric/bool_policies.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
-    template <typename T, typename RealPolicies = real_policies<T> >
-    struct real_parser : parser<real_parser<T, RealPolicies> >
+    template <typename T, typename BoolPolicies = bool_policies<T>>
+    struct bool_parser : parser<bool_parser<T, BoolPolicies>>
     {
         typedef T attribute_type;
         static bool const has_attribute = true;
-        static bool const caller_is_pass_through_unary = true;
-        typedef extract_real<T, RealPolicies> extract;
-        
-        real_parser()
+
+        bool_parser()
         	: policies() {}
 
-        real_parser(RealPolicies const& policies)
+        bool_parser(BoolPolicies const& policies)
         	: policies(policies) {}
 
         template <typename Iterator, typename Context>
         bool parse(Iterator& first, Iterator const& last
-          , Context& context, T& attr_) const
+          , Context& context, T& attr) const
         {
             x3::skip_over(first, last, context);
-            return extract::parse(first, last, attr_, policies);
+            return policies.parse_true(first, last, attr)
+                || policies.parse_false(first, last, attr);
         }
 
         template <typename Iterator, typename Context, typename Attribute>
@@ -58,40 +51,41 @@ namespace boost { namespace spirit { namespace x3
         }
         
         // literal
+        template <typename Iterator, typename Context>
+        bool parse(Iterator& first, Iterator const& last
+          , Context& context, T& attr, T val) const
+        {
+            x3::skip_over(first, last, context);
+            return val?
+                policies.parse_true(first, last, attr)
+              : policies.parse_false(first, last, attr);
+        }
+
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Attribute& attr, T val) const
         {
-            x3::skip_over(first, last, context);
-            Iterator it(first);
+            // this case is called when Attribute is not T
             T attr_;
-            if (extract::parse(it, last, attr_, policies) && attr_ == val)
+            if (parse(first, last, context, attr_, val))
             {
-                x3::traits::move_to(attr_, attr);
-                first = it;
+                traits::move_to(attr_, attr_param);
                 return true;
             }
             return false;
         }
-        
-        RealPolicies policies;
+                
+        BoolPolicies policies;
     };
-    
-    namespace extension
-    {
-        template <typename T>
-        struct literal<T, typename enable_if<is_floating_point<T>>::type>
-        {
-            typedef real_parser<T> type;
-        };
-    }
-    
-    typedef real_parser<float> float_type;                                    
-    float_type const float_{};    
-                                       
-    typedef real_parser<double> double_type;                                    
-    double_type const double_{};                                       
 
+    typedef bool_parser<bool> bool_type;
+    bool_type const bool_{};
+
+    typedef caller<bool_type, bool> true_type;
+    true_type const true_{{}, true};
+
+    typedef caller<bool_type, bool> false_type;
+    false_type const false_{{}, false};
 }}}
 
 #endif
