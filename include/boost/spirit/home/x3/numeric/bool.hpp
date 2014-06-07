@@ -69,7 +69,7 @@ namespace boost { namespace spirit { namespace x3
             T attr_;
             if (parse(first, last, context, attr_, val))
             {
-                traits::move_to(attr_, attr_param);
+                traits::move_to(attr_, attr);
                 return true;
             }
             return false;
