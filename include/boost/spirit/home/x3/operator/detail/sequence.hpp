@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2001-2013 Joel de Guzman
+    Copyright (c) 2001-2014 Joel de Guzman
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -337,8 +337,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         Parser const& parser , Iterator& first, Iterator const& last
       , Context const& context, Attribute& attr, traits::plain_attribute)
     {
-	typedef typename Parser::left_type Left;
-	typedef typename Parser::right_type Right;
+        typedef typename Parser::left_type Left;
+        typedef typename Parser::right_type Right;
         typedef typename traits::attribute_of<Left, Context>::type l_attr_type;
         typedef typename traits::attribute_of<Right, Context>::type r_attr_type;
         typedef traits::make_attribute<l_attr_type, Attribute> l_make_attribute;
@@ -405,29 +405,29 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         Parser const& parser , Iterator& first, Iterator const& last
       , Context const& context, Attribute& attr, traits::associative_attribute)
     {
-	// we can come here in 2 cases:
-	// - when sequence is key >> value and therefore must
-	// be parsed with tuple synthesized attribute and then
-	// that tuple is used to save into associative attribute provided here.
-	// Example:  key >> value;
-	//
-	// - when either this->left or this->right provides full key-value
-	// pair (like in case 1) and another one provides nothing.
-	// Example:  eps >> rule<class x; fusion::map<...> >
-	//
-	// first case must be parsed as whole, and second one should
-	// be parsed separately for left and right.
-
-	typedef typename traits::attribute_of<
-	    decltype(parser.left), Context>::type l_attr_type;
-	typedef typename traits::attribute_of<
-	    decltype(parser.right), Context>::type r_attr_type;
-
-	typedef typename mpl::or_<is_same<l_attr_type, unused_type>
-				  , is_same<r_attr_type, unused_type> > should_split;
-
-            return parse_sequence_assoc(parser, first, last, context, attr
-					, should_split());
+    	// we can come here in 2 cases:
+    	// - when sequence is key >> value and therefore must
+    	// be parsed with tuple synthesized attribute and then
+    	// that tuple is used to save into associative attribute provided here.
+    	// Example:  key >> value;
+    	//
+    	// - when either this->left or this->right provides full key-value
+    	// pair (like in case 1) and another one provides nothing.
+    	// Example:  eps >> rule<class x; fusion::map<...> >
+    	//
+    	// first case must be parsed as whole, and second one should
+    	// be parsed separately for left and right.
+    
+    	typedef typename traits::attribute_of<
+    	    decltype(parser.left), Context>::type l_attr_type;
+    	typedef typename traits::attribute_of<
+    	    decltype(parser.right), Context>::type r_attr_type;
+    
+    	typedef typename mpl::or_<is_same<l_attr_type, unused_type>
+            , is_same<r_attr_type, unused_type> > should_split;
+    
+        return parse_sequence_assoc(parser, first, last, context, attr
+            , should_split());
     }
 
     template <typename Left, typename Right, typename Context>
@@ -441,20 +441,20 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
           , Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, mpl::false_)
         {
-	    // inform user what went wrong if we jumped here in attempt to
-	    // parse incompatible sequence into fusion::map
-	    static_assert(!is_same< typename traits::attribute_category<Attribute>::type,
-			  traits::associative_attribute>::value,
-			  "To parse directly into fusion::map sequence must produce tuple attribute "
-			  "where type of first element is existing key in fusion::map and second element "
-			  "is value to be stored under that key");
+            // inform user what went wrong if we jumped here in attempt to
+            // parse incompatible sequence into fusion::map
+            static_assert(
+                !is_same<typename traits::attribute_category<Attribute>::type,
+                  traits::associative_attribute>::value,
+                  "To parse directly into fusion::map sequence must produce "
+                  "tuple attribute where type of first element is existing key "
+                  "in fusion::map and second element is value to be stored "
+                  "under that key");
 
             Attribute attr_;
-            if (!parse_sequence(parser
-			       , first, last, context, attr_, traits::container_attribute()))
-            {
+            if (!parse_sequence(parser, first, last, context, attr_
+                , traits::container_attribute()))
                 return false;
-	         }
             traits::append(attr, traits::begin(attr_), traits::end(attr_));
             return true;
         }
@@ -484,7 +484,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             value_type;
 
             return call(parser, first, last, context, attr
-	        , typename traits::is_substitute<attribute_type, value_type>::type());
+	           , traits::is_substitute<attribute_type, value_type>());
         }
     };
 
