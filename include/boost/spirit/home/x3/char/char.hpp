@@ -33,7 +33,7 @@ namespace boost { namespace spirit { namespace x3
         
         template <typename T, std::size_t N>
         struct is_char_set_string<T[N]>
-          : mpl::bool_<traits::is_char<T>::value && (N > 4)> {};
+          : mpl::bool_<traits::is_char<T>::value && (N > 3)> {};
     }
     
     template <typename Encoding>
@@ -42,8 +42,6 @@ namespace boost { namespace spirit { namespace x3
         typedef typename Encoding::char_type char_type;
         typedef std::pair<char_type, char_type> char_range;
         typedef detail::char_set<char_type> char_set;
-        typedef std::array<char_type, 2> char_set2;
-        typedef std::array<char_type, 3> char_set3;
         
         // char_
         template <typename Char, typename Context>
@@ -75,41 +73,17 @@ namespace boost { namespace spirit { namespace x3
         
         // char_("ab")
         template <typename Char>
-        static char_set2 transform_params(Char(&ch)[3])
+        static std::array<char_type, 2> transform_params(Char(&ch)[3])
         {
             return {char_type(ch[0]), char_type(ch[1])};
         }
 
-        template <typename Char, typename Context>
-        static bool test(Char ch, Context const& ctx, char_set2 const& chset)
+        template <typename Char, typename Context, std::size_t N>
+        static bool test(Char ch, Context const& ctx, std::array<char_type, N> const& chset)
         {
-            if (test(ch, ctx))
-            {
-                char_type ch_(ch);
-                return chset[0] == ch_ || chset[1] == ch_;
-            }
-            return false;
-        }
-        
-        // char_("a-c")
-        template <typename Char>
-        static char_set3 transform_params(Char(&ch)[4])
-        {
-            char_type ch1(ch[1] == '-'? 0 : ch[1]);
-            return {char_type(ch[0]), ch1, char_type(ch[2])};
-        }
-
-        template <typename Char, typename Context>
-        static bool test(Char ch, Context const& ctx, char_set3 const& chset)
-        {
-            if (test(ch, ctx))
-            {
-                char_type ch_(ch);
-                return chset[1]?
-                       chset[0] == ch_ || chset[1] == ch_ || chset[2] == ch_
-                    : !(ch_ < chset[0] || chset[2] < ch_);
-            }
-            return false;
+            using std::find;
+            return test(ch, ctx) &&
+                find(chset.begin(), chset.end(), char_type(ch)) != chset.end();
         }
         
         // char_('a', 'z')

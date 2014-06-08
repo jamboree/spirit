@@ -1,6 +1,5 @@
 /*=============================================================================
     Copyright (c) 2014 Joel de Guzman
-    Copyright (c) 2014 Jamboree
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -14,8 +13,6 @@
 
 #include <boost/spirit/home/x3/support/context.hpp>
 #include <boost/spirit/home/x3/core/directive.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-#include <boost/mpl/if.hpp>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -31,18 +28,10 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr, T&& val) const
         {
-            static bool const copy =
-                is_reference<ID>::value && is_reference<T>::value;
-            typename
-                mpl::if_c<copy, unrefcv_t<T>, T&&>::type
-            val_(std::forward<T>(val));
-            auto with_context(make_context<unrefcv_t<ID>>(val_, context));
-            return subject.parse(first, last, with_context, attr);
+            return subject.parse(first, last, make_context<ID>(val, context), attr);
         }
     };
 
-    // with<ID>(val): const
-    // with<ID&>(val): mutable
     template <typename ID, typename T>
     inline directive_caller<with_directive<ID>, unrefcv_t<T>>
     with(T&& val)
