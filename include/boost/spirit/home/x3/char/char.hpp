@@ -83,8 +83,12 @@ namespace boost { namespace spirit { namespace x3
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_set2 const& chset)
         {
-            char_type ch_(ch);
-            return test(ch, ctx) && (chset[0] == ch_ || chset[1] == ch_);
+            if (test(ch, ctx))
+            {
+                char_type ch_(ch);
+                return chset[0] == ch_ || chset[1] == ch_;
+            }
+            return false;
         }
         
         // char_("a-c")
@@ -98,11 +102,14 @@ namespace boost { namespace spirit { namespace x3
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_set3 const& chset)
         {
-            if (!test(ch, ctx))
-                return false;
-            char_type ch_(ch);
-            return chset[0] == ch_ || chset[2] == ch_
-                || chset[1] == ch_ || (chset[0] < ch_ && ch_ < chset[2]);
+            if (test(ch, ctx))
+            {
+                char_type ch_(ch);
+                return chset[1]?
+                       chset[0] == ch_ || chset[1] == ch_ || chset[2] == ch_
+                    : !(ch_ < chset[0] || chset[2] < ch_);
+            }
+            return false;
         }
         
         // char_('a', 'z')
@@ -116,8 +123,12 @@ namespace boost { namespace spirit { namespace x3
         template <typename Char, typename Context>
         static bool test(Char ch, Context const& ctx, char_range const& r)
         {
-            char_type ch_(ch);
-            return test(ch, ctx) && !(ch_ < r.first) && !(r.second < ch_);
+            if (test(ch, ctx))
+            {
+                char_type ch_(ch);
+                return !(ch_ < r.first || r.second < ch_);
+            }
+            return false;
         }
 
         // char_("_a-z")
