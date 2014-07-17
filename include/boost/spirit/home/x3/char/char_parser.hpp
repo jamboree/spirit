@@ -74,10 +74,10 @@ namespace boost { namespace spirit { namespace x3
     }
     
     template <typename Base, typename... Ts>
-    inline caller<char_parser<typename negate_char<Base>::type>, Ts...> 
+    inline caller<char_parser<typename negate_char<Base>::type>, Ts...>
     operator~(caller<char_parser<Base>, Ts...> const& c)
     {
-        return {mpl::false_(), {}, c.params};
+        return {{}, c.params};
     }
 }}}
 

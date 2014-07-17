@@ -15,6 +15,7 @@
 #include <boost/ref.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/utility/declval.hpp>
+#include <boost/spirit/home/x3/core/eval.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 
@@ -59,7 +60,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     {
         typedef T const& type;
     };
-    
+
     template <typename T>
     struct unwrap_param<reference_wrapper<T>>
     {
@@ -71,22 +72,87 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     {
         typedef T& type;
     };
+    
+    template <typename T>
+    using wrap_param_t = typename wrap_param<T>::type;
+    
+    template <typename T>
+    using unwrap_param_t = typename unwrap_param<T>::type;
+    
+    template <typename Subject, typename Enable, typename... Ts>
+    struct transform_params;
+
+    template <typename Subject, typename Parse, typename... As>
+    static typename transform_params<Subject, void, As...>::has_transform
+    parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
+    {
+        return parse(subject.transform_params(std::forward<As>(as)...));
+    }
+    
+    template <typename Subject, typename Parse, typename... As>
+    static typename transform_params<Subject, void, As...>::no_transform
+    parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
+    {
+        return parse(std::forward<As>(as)...);
+    }
+
+    template <typename... Ts>
+    struct arg_pack
+    {
+        static auto pack(wrap_param_t<Ts>... ts)
+        {
+            return [=](auto const& subject, auto&& ctx, auto&& parse)
+            {
+                return parse_unpacked(subject, parse,
+                    x3::eval<unwrap_param_t<Ts>>(ts, ctx)...);
+            };
+        }
+        
+        typedef decltype(pack(std::declval<Ts>()...)) type;
+    };
 
     template <typename Subject, typename Enable, typename... Ts>
     struct transform_params
     {
-        typedef std::tuple<typename wrap_param<Ts>::type...> type;
-        typedef mpl::false_ tag;
+        template <typename... As>
+        static auto pack(Subject const& subject, As&&... as)
+        {
+            return arg_pack<Ts...>::pack(std::forward<As>(as)...);
+        }
+        
+        typedef typename arg_pack<Ts...>::type type;
+        typedef bool no_transform;
     };
     
+    template <typename Params>
+    struct transform_pack
+    {
+        template <typename Subject, typename Context, typename Parse>
+        bool operator()(Subject const&, Context&&, Parse&& parse) const
+        {
+            return parse(params);
+        }
+        
+        Params params;
+    };
+        
     template <typename Subject, typename... Ts>
     struct transform_params<Subject, typename disable_if_substitution_failure<
         decltype(declval<Subject const>().transform_params(declval<Ts>()...))>::type, Ts...>
     {
         typedef
             decltype(declval<Subject const>().transform_params(declval<Ts>()...))
-        type;
-        typedef mpl::true_ tag;
+        result_type;
+
+        typedef transform_pack<result_type> type;
+        
+        template <typename... As>
+        static type pack(Subject const& subject, As&&... as)
+        {
+            return {subject.transform_params(std::forward<As>(as)...)};
+        }
+        
+        typedef bool has_transform;
         typedef type sfinae_result;
     };
 }}}}

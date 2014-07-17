@@ -27,76 +27,30 @@ namespace boost { namespace spirit { namespace x3
     {
         typedef unary_parser<Subject, caller<Subject, Ts...>> base_type;
         typedef detail::transform_params<Subject, void, Ts...> transform;
-        typedef typename transform::tag transform_tag;
+        typedef typename transform::type params_type;
+
         static bool const is_pass_through_unary =
             Subject::caller_is_pass_through_unary;
         static bool const handles_container = Subject::handles_container;
 
         template <typename... As>
         caller(Subject const& subject, As&&... as)
-          : caller(transform_tag(), subject, std::forward<As>(as)...) {}
-          
-        template <typename... As>
-        caller(mpl::true_, Subject const& subject, As&&... as)
           : base_type(subject)
-          , params(subject.transform_params(std::forward<As>(as)...))
+          , params(transform::pack(subject, std::forward<As>(as)...))
         {}
-        
-        template <typename... As>
-        caller(mpl::false_, Subject const& subject, As&&... as)
-          : base_type(subject), params(std::forward<As>(as)...) {}
-          
+
+        caller(Subject const& subject, params_type const& params)
+          : base_type(subject), params(params) {}
+
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            transform_tag tag;
-            make_index_sequence<sizeof...(Ts)> indices;
-            return parse_impl(tag, indices, first, last, context, attr);
-        }
-
-        // transformed
-        template <std::size_t... Ns
-          , typename Iterator, typename Context, typename Attribute>
-        bool parse_impl(mpl::true_, index_sequence<Ns...>
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return invoke_parse(first, last, context, attr, params);
-        }
-        
-        // not transformed
-        template <std::size_t... Ns
-          , typename Iterator, typename Context, typename Attribute>
-        bool parse_impl(mpl::false_, index_sequence<Ns...>
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return parse_unpacked(first, last, context, attr,
-                x3::eval<typename detail::unwrap_param<Ts>::type>(
-                    std::get<Ns>(params), context)...);
-        }
-        
-        template <typename Iterator, typename Context
-          , typename Attribute, typename... As>
-        typename enable_if_c<detail::transform_params<Subject, void, As...>
-            ::tag::value, bool>::type
-        parse_unpacked(Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, As&&... as) const
-        {
-            return invoke_parse(first, last, context, attr,
-                this->subject.transform_params(std::forward<As>(as)...));
-        }
-        
-        template <typename Iterator, typename Context
-          , typename Attribute, typename... As>
-        typename enable_if_c<!detail::transform_params<Subject, void, As...>
-            ::tag::value, bool>::type
-        parse_unpacked(Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, As&&... as) const
-        {
-            return invoke_parse(
-                first, last, context, attr, std::forward<As>(as)...);
+            return params(this->subject, context, [&](auto&&... as)
+            {
+                return this->invoke_parse(first, last, context, attr,
+                    static_cast<decltype(as)>(as)...);
+            });
         }
 
         template <
@@ -125,7 +79,7 @@ namespace boost { namespace spirit { namespace x3
                 first, last, context, attr, std::forward<As>(as)...);
         }
         
-        typename transform::type params;
+        params_type params;
     };
 }}}
 
