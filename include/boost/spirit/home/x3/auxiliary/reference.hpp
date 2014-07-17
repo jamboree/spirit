@@ -12,7 +12,7 @@
 #endif
 
 #include <boost/spirit/home/x3/core/parser.hpp>
-#include <boost/spirit/home/x3/core/detail/transform_params.hpp>
+#include <boost/spirit/home/x3/core/detail/pack_params.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
 #include <boost/spirit/home/x3/support/traits/handles_container.hpp>
@@ -26,7 +26,7 @@ namespace boost { namespace spirit { namespace x3
           : ref(ref) {}
         
         template <typename... Ts>
-        typename detail::transform_params<Subject, void, Ts...>::sfinae_result
+        detail::transform_params_t<Subject, Ts...>
         transform_params(Ts&&... ts) const
         {
             return ref.transform_params(std::forward<Ts>(ts)...);

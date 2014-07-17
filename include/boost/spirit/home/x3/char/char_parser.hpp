@@ -77,7 +77,7 @@ namespace boost { namespace spirit { namespace x3
     inline caller<char_parser<typename negate_char<Base>::type>, Ts...>
     operator~(caller<char_parser<Base>, Ts...> const& c)
     {
-        return {{}, c.params};
+        return {{}, c.pack};
     }
 }}}
 

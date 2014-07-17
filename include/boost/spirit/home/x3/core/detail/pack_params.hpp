@@ -4,8 +4,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //////////////////////////////////////////////////////////////////////////////*/
-#ifndef BOOST_SPIRIT_X3_DETAIL_TRANSFORM_PARAMS_HPP_INCLUDED
-#define BOOST_SPIRIT_X3_DETAIL_TRANSFORM_PARAMS_HPP_INCLUDED
+#ifndef BOOST_SPIRIT_X3_DETAIL_PACK_PARAMS_HPP_INCLUDED
+#define BOOST_SPIRIT_X3_DETAIL_PACK_PARAMS_HPP_INCLUDED
 
 #if defined(_MSC_VER)
 #pragma once
@@ -80,26 +80,26 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     using unwrap_param_t = typename unwrap_param<T>::type;
     
     template <typename Subject, typename Enable, typename... Ts>
-    struct transform_params;
+    struct pack_params;
 
     template <typename Subject, typename Parse, typename... As>
-    static typename transform_params<Subject, void, As...>::has_transform
+    static typename pack_params<Subject, void, As...>::has_transform
     parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
     {
         return parse(subject.transform_params(std::forward<As>(as)...));
     }
     
     template <typename Subject, typename Parse, typename... As>
-    static typename transform_params<Subject, void, As...>::no_transform
+    static typename pack_params<Subject, void, As...>::no_transform
     parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
     {
         return parse(std::forward<As>(as)...);
     }
 
     template <typename... Ts>
-    struct arg_pack
+    struct args_pack
     {
-        static auto pack(wrap_param_t<Ts>... ts)
+        static auto make(wrap_param_t<Ts>... ts)
         {
             return [=](auto const& subject, auto&& ctx, auto&& parse)
             {
@@ -108,19 +108,19 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             };
         }
         
-        typedef decltype(pack(std::declval<Ts>()...)) type;
+        typedef decltype(make(std::declval<Ts>()...)) type;
     };
 
     template <typename Subject, typename Enable, typename... Ts>
-    struct transform_params
+    struct pack_params
     {
         template <typename... As>
         static auto pack(Subject const& subject, As&&... as)
         {
-            return arg_pack<Ts...>::pack(std::forward<As>(as)...);
+            return args_pack<Ts...>::make(std::forward<As>(as)...);
         }
         
-        typedef typename arg_pack<Ts...>::type type;
+        typedef typename args_pack<Ts...>::type type;
         typedef bool no_transform;
     };
     
@@ -137,14 +137,14 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     };
         
     template <typename Subject, typename... Ts>
-    struct transform_params<Subject, typename disable_if_substitution_failure<
+    struct pack_params<Subject, typename disable_if_substitution_failure<
         decltype(declval<Subject const>().transform_params(declval<Ts>()...))>::type, Ts...>
     {
         typedef
             decltype(declval<Subject const>().transform_params(declval<Ts>()...))
-        result_type;
+        transform_type;
 
-        typedef transform_pack<result_type> type;
+        typedef transform_pack<transform_type> type;
         
         template <typename... As>
         static type pack(Subject const& subject, As&&... as)
@@ -153,8 +153,11 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         }
         
         typedef bool has_transform;
-        typedef type sfinae_result;
     };
+    
+    template <typename Subject, typename... Ts>
+    using transform_params_t =
+        typename pack_params<Subject, void, Ts...>::transform_type;
 }}}}
 
 #endif

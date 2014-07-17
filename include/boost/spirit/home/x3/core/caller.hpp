@@ -13,7 +13,7 @@
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/eval.hpp>
-#include <boost/spirit/home/x3/core/detail/transform_params.hpp>
+#include <boost/spirit/home/x3/core/detail/pack_params.hpp>
 #include <boost/spirit/home/x3/support/expectation.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
@@ -26,8 +26,8 @@ namespace boost { namespace spirit { namespace x3
     struct caller : unary_parser<Subject, caller<Subject, Ts...>>
     {
         typedef unary_parser<Subject, caller<Subject, Ts...>> base_type;
-        typedef detail::transform_params<Subject, void, Ts...> transform;
-        typedef typename transform::type params_type;
+        typedef detail::pack_params<Subject, void, Ts...> pack_params;
+        typedef typename pack_params::type pack_type;
 
         static bool const is_pass_through_unary =
             Subject::caller_is_pass_through_unary;
@@ -36,17 +36,17 @@ namespace boost { namespace spirit { namespace x3
         template <typename... As>
         caller(Subject const& subject, As&&... as)
           : base_type(subject)
-          , params(transform::pack(subject, std::forward<As>(as)...))
+          , pack(pack_params::pack(subject, std::forward<As>(as)...))
         {}
 
-        caller(Subject const& subject, params_type const& params)
-          : base_type(subject), params(params) {}
+        caller(Subject const& subject, pack_type const& pack)
+          : base_type(subject), pack(pack) {}
 
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            return params(this->subject, context, [&](auto&&... as)
+            return pack(this->subject, context, [&](auto&&... as)
             {
                 return this->invoke_parse(first, last, context, attr,
                     static_cast<decltype(as)>(as)...);
@@ -64,7 +64,7 @@ namespace boost { namespace spirit { namespace x3
         {
             Iterator entry(first);
             if (!this->subject.parse(
-                first, last, context.next, attr, std::forward<As>(as)...))
+                first, last, context.get_next(), attr, std::forward<As>(as)...))
                 boost::throw_exception(expectation_failure<Iterator>(
                     entry, what(this->subject, std::forward<As>(as)...)));
             return true;
@@ -79,7 +79,7 @@ namespace boost { namespace spirit { namespace x3
                 first, last, context, attr, std::forward<As>(as)...);
         }
         
-        params_type params;
+        pack_type pack;
     };
 }}}
 

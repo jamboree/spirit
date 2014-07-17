@@ -14,7 +14,7 @@
 #include <tuple>
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/eval.hpp>
-#include <boost/spirit/home/x3/core/detail/transform_params.hpp>
+#include <boost/spirit/home/x3/core/detail/pack_params.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
 #include <boost/spirit/home/x3/support/traits/attribute_of.hpp>
 #include <boost/spirit/home/x3/support/traits/has_attribute.hpp>
@@ -62,26 +62,20 @@ namespace boost { namespace spirit { namespace x3
     template <typename Directive, typename... Ts>
     struct directive_caller
     {
-        typedef detail::transform_params<Directive, void, Ts...> transform;
-        typedef typename transform::tag transform_tag;
+        typedef detail::pack_params<Directive, void, Ts...> pack_params;
+        typedef typename pack_params::type pack_type;
+        
         static bool const is_pass_through_unary =
             detail::caller_is_pass_through_unary<Directive>::value;
         
         template <typename... As>
         directive_caller(Directive const& directive, As&&... as)
-          : directive_caller(transform_tag(),
-                directive, std::forward<As>(as)...)
-        {}
-          
-        template <typename... As>
-        directive_caller(mpl::true_, Directive const& directive, As&&... as)
           : directive(directive)
-          , params(directive.transform_params(std::forward<As>(as)...))
+          , pack(pack_params::pack(directive, std::forward<As>(as)...))
         {}
-          
-        template <typename... As>
-        directive_caller(mpl::false_, Directive const& directive, As&&... as)
-          : directive(directive), params(std::forward<As>(as)...) {}
+
+        directive_caller(Directive const& directive, pack_type const& pack)
+          : directive(directive), pack(pack) {}
 
         template <typename Subject>
         directive_parser<directive_caller
@@ -96,60 +90,15 @@ namespace boost { namespace spirit { namespace x3
         bool parse(Subject const& subject, Iterator& first, Iterator const& last
           , Context const& context, Attribute& attr) const
         {
-            transform_tag tag;
-            make_index_sequence<sizeof...(Ts)> indices;
-            return parse_impl(tag, indices, subject, first, last, context, attr);
+            return pack(directive, context, [&](auto&&... as)
+            {
+                return this->directive.parse(subject, first, last, context,
+                    attr, static_cast<decltype(as)>(as)...);
+            });
         }
-        
-        // transformed
-        template <std::size_t... Ns, typename Subject
-            , typename Iterator, typename Context, typename Attribute>
-        bool parse_impl(mpl::true_, index_sequence<Ns...>
-          , Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return directive.parse(
-                subject, first, last, context, attr, params);
-        }
-        
-        // no transform_params
-        template <std::size_t... Ns, typename Subject
-            , typename Iterator, typename Context, typename Attribute>
-        bool parse_impl(mpl::false_, index_sequence<Ns...>
-          , Subject const& subject, Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr) const
-        {
-            return invoke_parse(subject, first, last, context, attr,
-                x3::eval<typename detail::unwrap_param<Ts>::type>(
-                    std::get<Ns>(params), context)...);
-        }
-        
-        template <typename Subject, typename Iterator, typename Context
-            , typename Attribute, typename... As>
-        typename enable_if_c<detail::transform_params<Directive, void, As...>
-            ::tag::value, bool>::type
-        invoke_parse(Subject const& subject
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, As&&... as) const
-        {
-            return directive.parse(subject, first, last, context, attr,
-                directive.transform_params(std::forward<As>(as)...));
-        }
-        
-        template <typename Subject, typename Iterator, typename Context
-            , typename Attribute, typename... As>
-        typename enable_if_c<!detail::transform_params<Directive, void, As...>
-            ::tag::value, bool>::type
-        invoke_parse(Subject const& subject
-          , Iterator& first, Iterator const& last
-          , Context const& context, Attribute& attr, As&&... as) const
-        {
-            return directive.parse(
-                subject, first, last, context, attr, std::forward<As>(as)...);
-        }
-        
+
         Directive directive;
-        typename transform::type params;
+        pack_type pack;
     };
 
     template <typename Derived>

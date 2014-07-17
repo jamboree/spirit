@@ -48,6 +48,11 @@ namespace boost { namespace spirit { namespace x3
         {
             return next.get(id);
         }
+        
+        Next const& get_next() const
+        {
+            return next;
+        }
 
         T& val;
         Next const& next;
@@ -82,6 +87,11 @@ namespace boost { namespace spirit { namespace x3
         template <typename ID_>
         unused_type
         get(ID_) const
+        {
+            return unused;
+        }
+        
+        unused_type get_next() const
         {
             return unused;
         }
