@@ -124,16 +124,16 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         typedef bool no_transform;
     };
     
-    template <typename Params>
-    struct transform_pack
+    template <typename T>
+    struct result_pack
     {
         template <typename Subject, typename Context, typename Parse>
         bool operator()(Subject const&, Context&&, Parse&& parse) const
         {
-            return parse(params);
+            return parse(val);
         }
         
-        Params params;
+        T val;
     };
         
     template <typename Subject, typename... Ts>
@@ -144,7 +144,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             decltype(declval<Subject const>().transform_params(declval<Ts>()...))
         transform_type;
 
-        typedef transform_pack<transform_type> type;
+        typedef result_pack<transform_type> type;
         
         template <typename... As>
         static type pack(Subject const& subject, As&&... as)
