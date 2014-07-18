@@ -11,10 +11,11 @@
 #pragma once
 #endif
 
-#include <tuple>
+#include <type_traits>
 #include <boost/ref.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/utility/declval.hpp>
+#include <boost/type_traits/has_trivial_copy.hpp>
 #include <boost/spirit/home/x3/core/eval.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
 #include <boost/spirit/home/x3/support/utility/integer_sequence.hpp>
@@ -43,11 +44,47 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         T data[N];
     };
     
+    template<class T>
+    struct mover
+    {
+        mover(T const& val)
+          : val(val)
+        {}
+        
+        mover(T&& val)
+          : val(std::move(val))
+        {}
+        
+        mover(mover const& other)
+          : val(other.val)
+        {}
+        
+        mover(mover& other)
+          : val(std::move(other.val))
+        {}
+        
+        mover(mover&& other)
+          : val(std::move(other.val))
+        {}
+        
+        operator T const&() const
+        {
+            return val; 
+        }
+    
+        T val;
+    };
+    
     template <typename T>
     struct wrap_param
-    {
-        typedef T type;
-    };
+      : std::conditional
+        <
+            std::is_move_constructible<T>::value
+        && !has_trivial_copy_constructor<T>::value
+          , mover<T>
+          , T
+        >
+    {};
 
     template <typename T, std::size_t N>
     struct wrap_param<T[N]>
@@ -81,16 +118,33 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     
     template <typename Subject, typename Enable, typename... Ts>
     struct pack_params;
+    
+    template <typename Subject, typename Enable, typename... Ts>
+    struct transform_params
+    {
+        typedef bool no_transform;
+    };
+    
+    template <typename Subject, typename... Ts>
+    struct transform_params<Subject, typename disable_if_substitution_failure<
+        decltype(declval<Subject const>().transform_params(declval<Ts>()...))>::type, Ts...>
+    {
+        typedef
+            decltype(declval<Subject const>().transform_params(declval<Ts>()...))
+        type;
 
+        typedef bool has_transform;
+    };
+    
     template <typename Subject, typename Parse, typename... As>
-    static typename pack_params<Subject, void, As...>::has_transform
+    static typename transform_params<Subject, void, As...>::has_transform
     parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
     {
         return parse(subject.transform_params(std::forward<As>(as)...));
     }
     
     template <typename Subject, typename Parse, typename... As>
-    static typename pack_params<Subject, void, As...>::no_transform
+    static typename transform_params<Subject, void, As...>::no_transform
     parse_unpacked(Subject const& subject, Parse const& parse, As&&... as)
     {
         return parse(std::forward<As>(as)...);
@@ -121,7 +175,6 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         }
         
         typedef typename args_pack<Ts...>::type type;
-        typedef bool no_transform;
     };
     
     template <typename T>
@@ -151,13 +204,11 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         {
             return {subject.transform_params(std::forward<As>(as)...)};
         }
-        
-        typedef bool has_transform;
     };
     
     template <typename Subject, typename... Ts>
     using transform_params_t =
-        typename pack_params<Subject, void, Ts...>::transform_type;
+        typename transform_params<Subject, void, Ts...>::type;
 }}}}
 
 #endif
