@@ -47,31 +47,21 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     template<class T>
     struct mover
     {
-        mover(T const& val)
-          : val(val)
-        {}
+        mover(T const& val) : val(val) {}
         
-        mover(T&& val)
-          : val(std::move(val))
-        {}
+        mover(T&& val) : val(std::move(val)) {}
         
-        mover(mover const& other)
-          : val(other.val)
-        {}
-        
-        mover(mover& other)
-          : val(std::move(other.val))
-        {}
-        
-        mover(mover&& other)
-          : val(std::move(other.val))
-        {}
-        
+        mover(mover const& other) = default;
+    
+        mover(mover&& other) = default; 
+    
+        mover(mover& other) : val(std::move(other.val)) {}
+    
         operator T const&() const
         {
             return val; 
         }
-    
+            
         T val;
     };
     
@@ -80,7 +70,8 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
       : std::conditional
         <
             std::is_move_constructible<T>::value
-        && !has_trivial_copy_constructor<T>::value
+        && !(std::is_copy_constructible<T>::value
+          && boost::has_trivial_copy_constructor<T>::value)
           , mover<T>
           , T
         >
