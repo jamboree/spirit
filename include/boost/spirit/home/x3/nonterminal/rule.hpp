@@ -215,7 +215,7 @@ namespace boost { namespace spirit { namespace x3
 #define BOOST_SPIRIT_DECLARE(...) BOOST_PP_SEQ_FOR_EACH(                        \
     BOOST_SPIRIT_DECLARE_, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
     /***/
-#define BOOST_SPIRIT_INSTANTIATE(iterator, rule, context)                       \
+#define BOOST_SPIRIT_INSTANTIATE(rule, iterator, context)                       \
     template bool parse_rule<iterator, context>(                                \
         decltype(rule) const&, iterator&, iterator const&, context const&       \
       , decltype(rule)::attribute_type&, decltype(rule)::params_type&);
