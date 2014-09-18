@@ -22,28 +22,6 @@
 
 namespace boost { namespace spirit { namespace x3 { namespace detail
 {
-    template <typename T, std::size_t N>
-    struct array_wrapper
-    {
-        typedef T const(&const_reference)[N];
-        
-        array_wrapper(T const(&data)[N])
-          : array_wrapper(data, make_index_sequence<N>())
-        {}
-
-        template<std::size_t... Ns>
-        array_wrapper(T const(&data)[N], index_sequence<Ns...>)
-          : data{data[Ns]...}
-        {}
-        
-        operator const_reference() const
-        {
-            return data; 
-        }
-
-        T data[N];
-    };
-    
     template<class T>
     struct mover
     {
@@ -80,7 +58,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
     template <typename T, std::size_t N>
     struct wrap_param<T[N]>
     {
-        typedef array_wrapper<T, N> type;
+        typedef T const(&type)[N];
     };
     
     template <typename T>
